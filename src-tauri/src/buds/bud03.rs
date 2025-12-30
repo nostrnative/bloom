@@ -20,9 +20,10 @@ impl Bud03 {
             .iter()
             .enumerate()
             .filter_map(|(i, tag)| {
-                if tag.as_vec().len() >= 2 && tag.as_vec()[0] == "server" {
+                let tag_vec = tag.clone().to_vec();
+                if tag_vec.len() >= 2 && tag_vec[0] == "server" {
                     Some(ServerListEntry {
-                        url: tag.as_vec()[1].clone(),
+                        url: tag_vec[1].clone(),
                         index: i,
                     })
                 } else {

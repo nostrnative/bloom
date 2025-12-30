@@ -26,18 +26,18 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::auth::{parse_authorization_header, validate_and_verify_auth, AuthError};
+use crate::auth::{parse_authorization_header, validate_and_verify_auth};
 use crate::storage::{BlobDescriptor, Storage, StorageManager};
 
 use tauri::Manager;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub storage: Arc<dyn Storage>,
+    pub storage: Arc<StorageManager>,
     pub handle: Arc<RwLock<Option<AppHandle>>>,
 }
 
-impl FromRef<AppState> for Arc<dyn Storage> {
+impl FromRef<AppState> for Arc<StorageManager> {
     fn from_ref(state: &AppState) -> Self {
         state.storage.clone()
     }
@@ -53,7 +53,7 @@ pub async fn start_server(handle: AppHandle) {
     std::fs::create_dir_all(&storage_dir).expect("Failed to create storage directory");
 
     let server_url = "http://localhost:8080".to_string();
-    let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone())) as Arc<dyn Storage>;
+    let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
 
     let state = AppState {
         storage: storage.clone(),
@@ -61,13 +61,13 @@ pub async fn start_server(handle: AppHandle) {
     };
 
     let app = Router::new()
-        .route("/:sha256", get(get_blob).head(head_blob))
-        .route("/:sha256", delete(delete_blob))
+        .route("/{sha256}", get(get_blob).head(head_blob))
+        .route("/{sha256}", delete(delete_blob))
         .route("/upload", put(upload_blob).head(head_upload))
         .route("/media", put(upload_media).head(head_media))
         .route("/mirror", put(mirror_blob))
         .route("/report", put(report_blob))
-        .route("/list/:pubkey", get(list_blobs))
+        .route("/list/{pubkey}", get(list_blobs))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
