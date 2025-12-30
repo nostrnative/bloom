@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blossom Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4ecca3;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #4ecca3;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ecca3;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .file-upload {
+            border: 2px dashed #4ecca3;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            background: rgba(78, 204, 163, 0.1);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .btn {
+            background: #4ecca3;
+            color: #16213e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #3db892;
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .blob-list {
+            list-style: none;
+        }
+
+        .blob-item {
+            background: #0f3460;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .blob-info h3 {
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .blob-info p {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .blob-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .progress {
+            height: 4px;
+            background: #0f3460;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #4ecca3;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 Blossom Server</h1>
+
+        <div class="card">
+            <div class="status">
+                <div class="status-indicator"></div>
+                <div>
+                    <strong>Server Status:</strong>
+                    <span id="server-status">Running</span>
+                </div>
+            </div>
+            <p>Server URL: <code>http://localhost:8080</code></p>
+        </div>
+
+        <div class="card">
+            <h2>Upload Blob</h2>
+            <div class="file-upload" id="dropzone">
+                <p>Drag & drop a file here or click to select</p>
+                <input type="file" id="file-input">
+            </div>
+            <div id="upload-progress" class="progress" style="display: none;">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Recent Blobs</h2>
+            <ul class="blob-list" id="blob-list">
+                <li style="color: #aaa; text-align: center; padding: 20px;">No blobs uploaded yet</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Server Information</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                    <h3 style="color: #4ecca3; margin-bottom: 10px;">BUD Support</h3>
+                    <ul style="color: #aaa; line-height: 2;">
+                        <li>BUD-00: Base Language ✓</li>
+                        <li>BUD-01: Server Requirements ✓</li>
+                        <li>BUD-02: Upload/Management ✓</li>
+                        <li>BUD-03: User Server List ✓</li>
+                        <li>BUD-04: Mirroring ✓</li>
+                        <li>BUD-05: Media Optimization ✓</li>
+                        <li>BUD-06: Upload Requirements ✓</li>
+                        <li>BUD-07: Payment Required ✓</li>
+                        <li>BUD-08: NIP-94 Metadata ✓</li>
+                        <li>BUD-09: Blob Reporting ✓</li>
+                        <li>BUD-10: Blossom URI ✓</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #4ecca3; margin-bottom: 10px;">Server Limits</h3>
+                    <ul style="color: #aaa; line-height: 2;">
+                        <li>Max Upload: 100 MiB</li>
+                        <li>Supported Types: All common media</li>
+                        <li>Auth Required: Nostr (kind:24242)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
