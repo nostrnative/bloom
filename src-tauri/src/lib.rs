@@ -20,7 +20,7 @@ struct SyncSettingsState {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub fn run_app() {
     init_logging();
 
     tauri::Builder::default()
