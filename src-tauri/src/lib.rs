@@ -1,6 +1,7 @@
 mod auth;
 mod commands;
 mod http_server;
+mod mobile;
 mod storage;
 mod sync;
 

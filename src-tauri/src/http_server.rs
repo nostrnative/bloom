@@ -48,24 +48,8 @@ impl FromRef<AppState> for Arc<StorageManager> {
     }
 }
 
-pub async fn start_server(handle: AppHandle) {
-    let storage_dir = handle
-        .path()
-        .app_local_data_dir()
-        .unwrap_or_else(|_| PathBuf::from("./blobs"));
-
-    let storage_dir = storage_dir.join("blobs");
-    std::fs::create_dir_all(&storage_dir).expect("Failed to create storage directory");
-
-    let server_url = "http://127.0.0.1:24242".to_string();
-    let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
-
-    let state = AppState {
-        storage: storage.clone(),
-        handle: Arc::new(RwLock::new(Some(handle.clone()))),
-    };
-
-    let app = Router::new()
+pub fn create_router(state: AppState) -> Router {
+    Router::new()
         .route("/", get(health_check).head(health_check))
         .route("/{sha256}", get(get_blob).head(head_blob))
         .route("/{sha256}", delete(delete_blob))
@@ -85,7 +69,27 @@ pub async fn start_server(handle: AppHandle) {
                 )
                 .layer(CompressionLayer::new()),
         )
-        .with_state(state);
+        .with_state(state)
+}
+
+pub async fn start_server(handle: AppHandle) {
+    let storage_dir = handle
+        .path()
+        .app_local_data_dir()
+        .unwrap_or_else(|_| PathBuf::from("./blobs"));
+
+    let storage_dir = storage_dir.join("blobs");
+    std::fs::create_dir_all(&storage_dir).expect("Failed to create storage directory");
+
+    let server_url = "http://127.0.0.1:24242".to_string();
+    let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
+
+    let state = AppState {
+        storage: storage.clone(),
+        handle: Arc::new(RwLock::new(Some(handle.clone()))),
+    };
+
+    let app = create_router(state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:24242")
         .await
