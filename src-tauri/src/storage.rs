@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tokio::sync::RwLock;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,6 +17,7 @@ pub struct BlobDescriptor {
     pub nip94: Option<Vec<Vec<String>>>,
 }
 
+#[derive(Debug)]
 pub struct StorageManager {
     base_path: PathBuf,
     #[allow(dead_code)]
@@ -47,6 +48,7 @@ impl StorageManager {
     }
 
     pub async fn store_blob(&self, data: Vec<u8>, sha256: &str) -> Result<BlobDescriptor, String> {
+        println!("{:?}", self);
         let blob_path = self.get_blob_path(sha256);
         let descriptor_path = self.get_descriptor_path(sha256).await;
 
@@ -89,8 +91,8 @@ impl StorageManager {
             nip94: None,
         };
 
-        let descriptor_json =
-            serde_json::to_string_pretty(&descriptor).map_err(|e| format!("Failed to serialize descriptor: {}", e))?;
+        let descriptor_json = serde_json::to_string_pretty(&descriptor)
+            .map_err(|e| format!("Failed to serialize descriptor: {}", e))?;
 
         tokio::fs::write(&descriptor_path, descriptor_json)
             .await

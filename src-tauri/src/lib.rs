@@ -3,7 +3,6 @@ mod buds;
 mod commands;
 mod http_server;
 mod mobile;
-mod nostr;
 mod reminders;
 mod storage;
 mod sync;

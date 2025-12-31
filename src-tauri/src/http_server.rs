@@ -2,22 +2,19 @@ use axum::{
     body::Body,
     extract::{FromRef, State},
     http::{
-        header::{self, HeaderMap, HeaderValue},
+        header::{self, HeaderMap},
         StatusCode,
     },
-    response::{IntoResponse, Response},
-    routing::{delete, get, head, put},
+    response::Response,
+    routing::{delete, get, put},
     Router,
 };
-use axum::response::sse::{self, Sse};
 use bytes::Bytes;
-use futures::stream::{self, Stream};
 use serde::Deserialize;
-use std::convert::Infallible;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 use tokio::sync::RwLock;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -71,7 +68,12 @@ pub async fn start_server(handle: AppHandle) {
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
-                .layer(CorsLayer::new().allow_origin(Any).allow_methods(Any).allow_headers(Any))
+                .layer(
+                    CorsLayer::new()
+                        .allow_origin(Any)
+                        .allow_methods(Any)
+                        .allow_headers(Any),
+                )
                 .layer(CompressionLayer::new()),
         )
         .with_state(state);
@@ -241,7 +243,10 @@ async fn delete_blob(
 ) -> Result<Response, Response> {
     let auth_header = headers.get(header::AUTHORIZATION);
     if auth_header.is_none() {
-        return Err(error_response(StatusCode::UNAUTHORIZED, "Authorization required"));
+        return Err(error_response(
+            StatusCode::UNAUTHORIZED,
+            "Authorization required",
+        ));
     }
 
     if let Ok(auth_str) = auth_header.unwrap().to_str() {
@@ -253,10 +258,16 @@ async fn delete_blob(
                 ));
             }
         } else {
-            return Err(error_response(StatusCode::UNAUTHORIZED, "Invalid authorization"));
+            return Err(error_response(
+                StatusCode::UNAUTHORIZED,
+                "Invalid authorization",
+            ));
         }
     } else {
-        return Err(error_response(StatusCode::UNAUTHORIZED, "Invalid authorization"));
+        return Err(error_response(
+            StatusCode::UNAUTHORIZED,
+            "Invalid authorization",
+        ));
     }
 
     match state.storage.delete(&sha256).await {
@@ -324,7 +335,10 @@ async fn mirror_blob(
 ) -> Result<Response, Response> {
     let auth_header = headers.get(header::AUTHORIZATION);
     if auth_header.is_none() {
-        return Err(error_response(StatusCode::UNAUTHORIZED, "Authorization required"));
+        return Err(error_response(
+            StatusCode::UNAUTHORIZED,
+            "Authorization required",
+        ));
     }
 
     let client = reqwest::Client::builder()
