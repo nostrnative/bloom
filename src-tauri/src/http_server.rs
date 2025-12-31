@@ -1,11 +1,11 @@
 use axum::{
     body::Body,
-    extract::{FromRef, State},
+    extract::{FromRef, Query, State},
     http::{
         header::{self, HeaderMap},
         StatusCode,
     },
-    response::Response,
+    response::{IntoResponse, Response},
     routing::{delete, get, put},
     Router,
 };
@@ -34,6 +34,14 @@ pub struct AppState {
     pub handle: Arc<RwLock<Option<AppHandle>>>,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct ProxyHints {
+    #[serde(default)]
+    pub xs: Vec<String>,
+    #[serde(rename = "as", default)]
+    pub as_hints: Vec<String>,
+}
+
 impl FromRef<AppState> for Arc<StorageManager> {
     fn from_ref(state: &AppState) -> Self {
         state.storage.clone()
@@ -49,7 +57,7 @@ pub async fn start_server(handle: AppHandle) {
     let storage_dir = storage_dir.join("blobs");
     std::fs::create_dir_all(&storage_dir).expect("Failed to create storage directory");
 
-    let server_url = "http://localhost:8080".to_string();
+    let server_url = "http://127.0.0.1:24242".to_string();
     let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
 
     let state = AppState {
@@ -58,6 +66,7 @@ pub async fn start_server(handle: AppHandle) {
     };
 
     let app = Router::new()
+        .route("/", get(health_check).head(health_check))
         .route("/{sha256}", get(get_blob).head(head_blob))
         .route("/{sha256}", delete(delete_blob))
         .route("/upload", put(upload_blob).head(head_upload))
@@ -78,23 +87,44 @@ pub async fn start_server(handle: AppHandle) {
         )
         .with_state(state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:24242")
         .await
         .expect("Failed to bind to address");
 
-    tracing::info!("Blossom server listening on http://0.0.0.0:8080");
+    tracing::info!("Blossom server (BUD-11 Cache) listening on http://127.0.0.1:24242");
 
     axum::serve(listener, app)
         .await
         .expect("Failed to start server");
 }
 
+async fn health_check() -> impl IntoResponse {
+    StatusCode::OK
+}
+
+fn strip_extension(sha256_ext: &str) -> &str {
+    if let Some(pos) = sha256_ext.find('.') {
+        &sha256_ext[..pos]
+    } else {
+        sha256_ext
+    }
+}
+
 async fn get_blob(
     State(state): State<AppState>,
-    axum::extract::Path(sha256): axum::extract::Path<String>,
+    axum::extract::Path(sha256_ext): axum::extract::Path<String>,
+    Query(hints): Query<ProxyHints>,
     headers: HeaderMap,
 ) -> Result<Response, Response> {
-    if !state.storage.exists(&sha256).await {
+    let sha256 = strip_extension(&sha256_ext);
+
+    if !state.storage.exists(sha256).await {
+        // If not found locally, try proxying if hints are provided
+        if !hints.xs.is_empty() || !hints.as_hints.is_empty() {
+            if let Ok(response) = proxy_blob(&state.storage, sha256, &hints).await {
+                return Ok(response);
+            }
+        }
         return Err(error_response(StatusCode::NOT_FOUND, "Blob not found"));
     }
 
@@ -102,7 +132,7 @@ async fn get_blob(
     if let Some(auth) = auth_header {
         if let Ok(auth_str) = auth.to_str() {
             if let Ok(event) = parse_authorization_header(auth_str) {
-                if let Err(e) = validate_and_verify_auth(&event, Some("get"), Some(&sha256)) {
+                if let Err(e) = validate_and_verify_auth(&event, Some("get"), Some(sha256)) {
                     return Err(error_response(
                         StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
                         &e.message,
@@ -112,17 +142,44 @@ async fn get_blob(
         }
     }
 
-    match state.storage.get(&sha256).await {
+    match state.storage.get(sha256).await {
         Ok((data, descriptor)) => {
-            let mut response = Response::builder()
-                .status(StatusCode::OK)
-                .header(header::CONTENT_TYPE, descriptor.mime_type)
-                .header(header::CONTENT_LENGTH, descriptor.size)
-                .header(header::ACCEPT_RANGES, "bytes")
-                .body(Body::from(data))
-                .unwrap();
+            let mut status = StatusCode::OK;
+            let mut range_start = 0;
+            let mut range_end = data.len();
 
-            Ok(response)
+            if let Some(range_header) = headers.get(header::RANGE) {
+                if let Ok(range_str) = range_header.to_str() {
+                    if range_str.starts_with("bytes=") {
+                        let parts: Vec<&str> = range_str[6..].split('-').collect();
+                        if parts.len() == 2 {
+                            let start = parts[0].parse::<usize>().unwrap_or(0);
+                            let end = parts[1].parse::<usize>().unwrap_or(data.len() - 1);
+
+                            if start < data.len() {
+                                range_start = start;
+                                range_end = (end + 1).min(data.len());
+                                status = StatusCode::PARTIAL_CONTENT;
+                            }
+                        }
+                    }
+                }
+            }
+
+            let body_data = data[range_start..range_end].to_vec();
+            let content_range = format!("bytes {}-{}/{}", range_start, range_end - 1, data.len());
+
+            let mut builder = Response::builder()
+                .status(status)
+                .header(header::CONTENT_TYPE, descriptor.mime_type)
+                .header(header::CONTENT_LENGTH, body_data.len())
+                .header(header::ACCEPT_RANGES, "bytes");
+
+            if status == StatusCode::PARTIAL_CONTENT {
+                builder = builder.header(header::CONTENT_RANGE, content_range);
+            }
+
+            Ok(builder.body(Body::from(body_data)).unwrap())
         }
         Err(e) => Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e)),
     }
@@ -130,10 +187,19 @@ async fn get_blob(
 
 async fn head_blob(
     State(state): State<AppState>,
-    axum::extract::Path(sha256): axum::extract::Path<String>,
+    axum::extract::Path(sha256_ext): axum::extract::Path<String>,
+    Query(hints): Query<ProxyHints>,
     headers: HeaderMap,
 ) -> Result<Response, Response> {
-    if !state.storage.exists(&sha256).await {
+    let sha256 = strip_extension(&sha256_ext);
+
+    if !state.storage.exists(sha256).await {
+        // For HEAD, we could also proxy but it might be overkill just to check existence.
+        if !hints.xs.is_empty() || !hints.as_hints.is_empty() {
+            if let Ok(response) = proxy_blob_head(&state.storage, sha256, &hints).await {
+                return Ok(response);
+            }
+        }
         return Err(error_response(StatusCode::NOT_FOUND, "Blob not found"));
     }
 
@@ -141,7 +207,7 @@ async fn head_blob(
     if let Some(auth) = auth_header {
         if let Ok(auth_str) = auth.to_str() {
             if let Ok(event) = parse_authorization_header(auth_str) {
-                if let Err(e) = validate_and_verify_auth(&event, Some("get"), Some(&sha256)) {
+                if let Err(e) = validate_and_verify_auth(&event, Some("get"), Some(sha256)) {
                     return Err(error_response(
                         StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
                         &e.message,
@@ -151,17 +217,51 @@ async fn head_blob(
         }
     }
 
-    match state.storage.get_descriptor(&sha256).await {
+    match state.storage.get_descriptor(sha256).await {
         Ok(descriptor) => {
-            let response = Response::builder()
-                .status(StatusCode::OK)
-                .header(header::CONTENT_TYPE, descriptor.mime_type)
-                .header(header::CONTENT_LENGTH, descriptor.size)
-                .header(header::ACCEPT_RANGES, "bytes")
-                .body(Body::empty())
-                .unwrap();
+            let mut status = StatusCode::OK;
+            let mut range_start = 0;
+            let mut range_end = descriptor.size as usize;
 
-            Ok(response)
+            if let Some(range_header) = headers.get(header::RANGE) {
+                if let Ok(range_str) = range_header.to_str() {
+                    if range_str.starts_with("bytes=") {
+                        let parts: Vec<&str> = range_str[6..].split('-').collect();
+                        if parts.len() == 2 {
+                            let start = parts[0].parse::<usize>().unwrap_or(0);
+                            let end = parts[1]
+                                .parse::<usize>()
+                                .unwrap_or(descriptor.size as usize - 1);
+
+                            if start < descriptor.size as usize {
+                                range_start = start;
+                                range_end = (end + 1).min(descriptor.size as usize);
+                                status = StatusCode::PARTIAL_CONTENT;
+                            }
+                        }
+                    }
+                }
+            }
+
+            let content_length = range_end - range_start;
+            let content_range = format!(
+                "bytes {}-{}/{}",
+                range_start,
+                range_end - 1,
+                descriptor.size
+            );
+
+            let mut builder = Response::builder()
+                .status(status)
+                .header(header::CONTENT_TYPE, descriptor.mime_type)
+                .header(header::CONTENT_LENGTH, content_length)
+                .header(header::ACCEPT_RANGES, "bytes");
+
+            if status == StatusCode::PARTIAL_CONTENT {
+                builder = builder.header(header::CONTENT_RANGE, content_range);
+            }
+
+            Ok(builder.body(Body::empty()).unwrap())
         }
         Err(e) => Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e)),
     }
@@ -173,6 +273,11 @@ async fn upload_blob(
     body: Bytes,
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
+
+    let content_type = headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s.to_string());
 
     let auth_header = headers.get(header::AUTHORIZATION);
     if let Some(auth) = auth_header {
@@ -188,7 +293,11 @@ async fn upload_blob(
         }
     }
 
-    match state.storage.store(body.to_vec(), &sha256).await {
+    match state
+        .storage
+        .store(body.to_vec(), &sha256, content_type)
+        .await
+    {
         Ok(descriptor) => {
             let json = serde_json::to_string(&descriptor).unwrap();
             Ok(Response::builder()
@@ -286,6 +395,11 @@ async fn upload_media(
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
 
+    let content_type = headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s.to_string());
+
     let auth_header = headers.get(header::AUTHORIZATION);
     if let Some(auth) = auth_header {
         if let Ok(auth_str) = auth.to_str() {
@@ -300,7 +414,11 @@ async fn upload_media(
         }
     }
 
-    match state.storage.store(body.to_vec(), &sha256).await {
+    match state
+        .storage
+        .store(body.to_vec(), &sha256, content_type)
+        .await
+    {
         Ok(descriptor) => {
             let json = serde_json::to_string(&descriptor).unwrap();
             Ok(Response::builder()
@@ -352,6 +470,12 @@ async fn mirror_blob(
         .await
         .map_err(|e| error_response(StatusCode::BAD_GATEWAY, &e.to_string()))?;
 
+    let content_type = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s.to_string());
+
     let data = response
         .bytes()
         .await
@@ -370,7 +494,11 @@ async fn mirror_blob(
         }
     }
 
-    match state.storage.store(data.to_vec(), &sha256).await {
+    match state
+        .storage
+        .store(data.to_vec(), &sha256, content_type)
+        .await
+    {
         Ok(descriptor) => {
             let json = serde_json::to_string(&descriptor).unwrap();
             Ok(Response::builder()
@@ -413,4 +541,130 @@ fn error_response(status: StatusCode, message: &str) -> Response {
         .header("X-Reason", message)
         .body(Body::from(message.to_string()))
         .unwrap()
+}
+
+async fn proxy_blob(
+    storage: &StorageManager,
+    sha256: &str,
+    hints: &ProxyHints,
+) -> Result<Response, String> {
+    let client = reqwest::Client::new();
+
+    // 1. Try xs hints
+    for server in &hints.xs {
+        let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
+        if let Ok(resp) = client.get(&url).send().await {
+            if resp.status().is_success() {
+                let content_type = resp
+                    .headers()
+                    .get(header::CONTENT_TYPE)
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or("application/octet-stream")
+                    .to_string();
+
+                if let Ok(bytes) = resp.bytes().await {
+                    // Validate hash
+                    let received_sha256 = StorageManager::compute_sha256(&bytes);
+                    if received_sha256 == sha256 {
+                        // Store locally
+                        let _ = storage
+                            .store(bytes.to_vec(), sha256, Some(content_type.clone()))
+                            .await;
+
+                        let response = Response::builder()
+                            .status(StatusCode::OK)
+                            .header(header::CONTENT_TYPE, content_type)
+                            .header(header::CONTENT_LENGTH, bytes.len())
+                            .header(header::ACCEPT_RANGES, "bytes")
+                            .body(Body::from(bytes))
+                            .unwrap();
+                        return Ok(response);
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. Try as hints (author pubkeys)
+    for pubkey in &hints.as_hints {
+        if let Ok(servers) = fetch_author_servers(pubkey).await {
+            for server in servers {
+                let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
+                if let Ok(resp) = client.get(&url).send().await {
+                    if resp.status().is_success() {
+                        let content_type = resp
+                            .headers()
+                            .get(header::CONTENT_TYPE)
+                            .and_then(|v| v.to_str().ok())
+                            .unwrap_or("application/octet-stream")
+                            .to_string();
+
+                        if let Ok(bytes) = resp.bytes().await {
+                            let received_sha256 = StorageManager::compute_sha256(&bytes);
+                            if received_sha256 == sha256 {
+                                let _ = storage
+                                    .store(bytes.to_vec(), sha256, Some(content_type.clone()))
+                                    .await;
+
+                                let response = Response::builder()
+                                    .status(StatusCode::OK)
+                                    .header(header::CONTENT_TYPE, content_type)
+                                    .header(header::CONTENT_LENGTH, bytes.len())
+                                    .header(header::ACCEPT_RANGES, "bytes")
+                                    .body(Body::from(bytes))
+                                    .unwrap();
+                                return Ok(response);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Err("Not found in hints".to_string())
+}
+
+async fn proxy_blob_head(
+    _storage: &StorageManager,
+    sha256: &str,
+    hints: &ProxyHints,
+) -> Result<Response, String> {
+    let client = reqwest::Client::new();
+
+    for server in &hints.xs {
+        let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
+        if let Ok(resp) = client.head(&url).send().await {
+            if resp.status().is_success() {
+                let content_type = resp
+                    .headers()
+                    .get(header::CONTENT_TYPE)
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or("application/octet-stream")
+                    .to_string();
+                let content_length = resp
+                    .headers()
+                    .get(header::CONTENT_LENGTH)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|v| v.parse::<u64>().ok())
+                    .unwrap_or(0);
+
+                let response = Response::builder()
+                    .status(StatusCode::OK)
+                    .header(header::CONTENT_TYPE, content_type)
+                    .header(header::CONTENT_LENGTH, content_length)
+                    .header(header::ACCEPT_RANGES, "bytes")
+                    .body(Body::empty())
+                    .unwrap();
+                return Ok(response);
+            }
+        }
+    }
+
+    Err("Not found in hints".to_string())
+}
+
+async fn fetch_author_servers(_pubkey: &str) -> Result<Vec<String>, String> {
+    // Stub for now
+    Ok(vec![])
 }

@@ -1,9 +1,6 @@
 mod auth;
-mod buds;
 mod commands;
 mod http_server;
-mod mobile;
-mod reminders;
 mod storage;
 mod sync;
 

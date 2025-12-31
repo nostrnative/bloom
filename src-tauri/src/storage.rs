@@ -47,14 +47,20 @@ impl StorageManager {
         path
     }
 
-    pub async fn store_blob(&self, data: Vec<u8>, sha256: &str) -> Result<BlobDescriptor, String> {
-        println!("{:?}", self);
+    pub async fn store_blob(
+        &self,
+        data: Vec<u8>,
+        sha256: &str,
+        mime_type: Option<String>,
+    ) -> Result<BlobDescriptor, String> {
         let blob_path = self.get_blob_path(sha256);
         let descriptor_path = self.get_descriptor_path(sha256).await;
 
-        let mime_type = mime_guess::from_path(&sha256)
-            .first_or_octet_stream()
-            .to_string();
+        let mime_type = mime_type.unwrap_or_else(|| {
+            mime_guess::from_path(sha256)
+                .first_or_octet_stream()
+                .to_string()
+        });
         let size = data.len() as u64;
         let uploaded = chrono::Utc::now().timestamp();
 
@@ -171,17 +177,28 @@ impl StorageManager {
 
 #[async_trait]
 pub trait Storage: Send + Sync {
-    async fn store(&self, data: Vec<u8>, sha256: &str) -> Result<BlobDescriptor, String>;
+    async fn store(
+        &self,
+        data: Vec<u8>,
+        sha256: &str,
+        mime_type: Option<String>,
+    ) -> Result<BlobDescriptor, String>;
     async fn get(&self, sha256: &str) -> Result<(Vec<u8>, BlobDescriptor), String>;
     async fn exists(&self, sha256: &str) -> bool;
     async fn delete(&self, sha256: &str) -> Result<(), String>;
+    #[allow(dead_code)]
     async fn get_descriptor(&self, sha256: &str) -> Result<BlobDescriptor, String>;
 }
 
 #[async_trait]
 impl Storage for StorageManager {
-    async fn store(&self, data: Vec<u8>, sha256: &str) -> Result<BlobDescriptor, String> {
-        self.store_blob(data, sha256).await
+    async fn store(
+        &self,
+        data: Vec<u8>,
+        sha256: &str,
+        mime_type: Option<String>,
+    ) -> Result<BlobDescriptor, String> {
+        self.store_blob(data, sha256, mime_type).await
     }
 
     async fn get(&self, sha256: &str) -> Result<(Vec<u8>, BlobDescriptor), String> {

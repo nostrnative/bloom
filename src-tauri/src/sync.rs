@@ -1,10 +1,3 @@
-use nostr_sdk::prelude::*;
-use std::collections::HashMap;
-use std::sync::Arc;
-use std::time::Duration;
-use tauri::AppHandle;
-use tokio::sync::RwLock;
-
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SyncSettings {
     pub local_relay: Option<String>,
