@@ -55,6 +55,7 @@ impl StorageManager {
     ) -> Result<BlobDescriptor, String> {
         let blob_path = self.get_blob_path(sha256);
         let descriptor_path = self.get_descriptor_path(sha256).await;
+        println!("{:?}", mime_type);
 
         let mime_type = mime_type.unwrap_or_else(|| {
             mime_guess::from_path(sha256)
@@ -74,6 +75,7 @@ impl StorageManager {
             "video/quicktime" => "mov",
             "audio/mpeg" => "mp3",
             "audio/wav" => "wav",
+            "text/plain" => "txt",
             _ => "bin",
         };
 
@@ -168,6 +170,26 @@ impl StorageManager {
         Ok(())
     }
 
+    pub async fn list_all(&self) -> Result<Vec<BlobDescriptor>, String> {
+        let mut blobs = Vec::new();
+        let mut entries = tokio::fs::read_dir(&self.base_path)
+            .await
+            .map_err(|e| format!("Failed to read storage directory: {}", e))?;
+
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) == Some("json") {
+                if let Some(sha256) = path.file_stem().and_then(|s| s.to_str()) {
+                    if let Ok(descriptor) = self.get_descriptor(sha256).await {
+                        blobs.push(descriptor);
+                    }
+                }
+            }
+        }
+
+        Ok(blobs)
+    }
+
     pub fn compute_sha256(data: &[u8]) -> String {
         let mut hasher = Sha256::new();
         hasher.update(data);
@@ -188,6 +210,8 @@ pub trait Storage: Send + Sync {
     async fn delete(&self, sha256: &str) -> Result<(), String>;
     #[allow(dead_code)]
     async fn get_descriptor(&self, sha256: &str) -> Result<BlobDescriptor, String>;
+    #[allow(dead_code)]
+    async fn list_all(&self) -> Result<Vec<BlobDescriptor>, String>;
 }
 
 #[async_trait]
@@ -215,5 +239,9 @@ impl Storage for StorageManager {
 
     async fn get_descriptor(&self, sha256: &str) -> Result<BlobDescriptor, String> {
         self.get_descriptor(sha256).await
+    }
+
+    async fn list_all(&self) -> Result<Vec<BlobDescriptor>, String> {
+        self.list_all().await
     }
 }

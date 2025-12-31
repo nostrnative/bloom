@@ -1,3 +1,7 @@
 src-tauri/target
 node_modules
 dist
+*.keystore
+*.jks
+*.properties
+releases

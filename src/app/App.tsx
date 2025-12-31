@@ -5,6 +5,7 @@ import Settings from "@/components/Settings";
 import BlossomServer from "@/components/BlossomServer";
 import { Button } from "@/components/ui/button";
 import { Settings as SettingsIcon, Server } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 
 const queryClient = new QueryClient();
 
@@ -12,7 +13,35 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState<"server" | "settings">(
     "server",
   );
-  const { theme } = useAppStore();
+  const { theme, setBlossomPort } = useAppStore();
+
+  useEffect(() => {
+    const initPort = async () => {
+      try {
+        const activePort = await invoke<number>("get_server_port");
+        if (activePort && activePort !== 0) {
+          setBlossomPort(activePort);
+          return true; // Found port
+        }
+      } catch (error) {
+        console.error("Failed to fetch server port:", error);
+      }
+      return false; // Port not found yet
+    };
+
+    // Try immediately
+    initPort().then((found) => {
+      if (!found) {
+        // If not found, poll every second until we get it
+        const interval = setInterval(async () => {
+          if (await initPort()) {
+            clearInterval(interval);
+          }
+        }, 1000);
+        return () => clearInterval(interval);
+      }
+    });
+  }, [setBlossomPort]);
 
   useEffect(() => {
     const root = window.document.documentElement;

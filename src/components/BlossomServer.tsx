@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Server, List, Trash2, Download } from "lucide-react";
+import { Upload, Server, List, Trash2, Download, Loader2 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface BlobItem {
   sha256: string;
@@ -20,27 +21,44 @@ interface BlobItem {
 }
 
 export default function BlossomServer() {
+  const { nsec, pubkey, blossomPort: port } = useAppStore();
+  const queryClient = useQueryClient();
   const [serverRunning, setServerRunning] = useState(false);
-  const [blobs, setBlobs] = useState<BlobItem[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const { nsec } = useAppStore();
+
+  const serverUrl = useMemo(() => `http://127.0.0.1:${port}`, [port]);
 
   useEffect(() => {
-    setServerRunning(true);
-  }, []);
+    const checkServer = async () => {
+      try {
+        const response = await fetch(`${serverUrl}/`);
+        setServerRunning(response.ok);
+      } catch (error) {
+        setServerRunning(false);
+      }
+    };
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    checkServer();
+    const interval = setInterval(checkServer, 5000);
+    return () => clearInterval(interval);
+  }, [serverUrl]);
 
-    setUploading(true);
-    try {
+  const { data: blobs = [], isLoading: isLoadingBlobs } = useQuery({
+    queryKey: ["blobs", pubkey, serverUrl],
+    queryFn: async () => {
+      if (!pubkey) return [];
+      const response = await fetch(`${serverUrl}/list/${pubkey}`);
+      if (!response.ok) throw new Error("Failed to fetch blobs");
+      return response.json() as Promise<BlobItem[]>;
+    },
+    enabled: !!pubkey && serverRunning,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      const response = await fetch("http://localhost:24242/upload", {
+      const response = await fetch(`${serverUrl}/upload`, {
         method: "PUT",
         headers: {
           "Content-Type": file.type,
@@ -48,14 +66,41 @@ export default function BlossomServer() {
         body: uint8Array,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        setBlobs((prev) => [...prev, result]);
+      if (!response.ok) throw new Error("Upload failed");
+      return response.json() as Promise<BlobItem>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["blobs", pubkey] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (sha256: string) => {
+      const response = await fetch(`${serverUrl}/${sha256}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const reason = response.headers.get("X-Reason");
+        throw new Error(reason || "Delete failed");
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["blobs", pubkey] });
+    },
+  });
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await uploadMutation.mutateAsync(file);
     } catch (error) {
       console.error("Upload failed:", error);
     } finally {
-      setUploading(false);
       event.target.value = "";
     }
   };
@@ -72,6 +117,8 @@ export default function BlossomServer() {
     return new Date(timestamp * 1000).toLocaleString();
   };
 
+  const totalSize = blobs.reduce((acc, blob) => acc + blob.size, 0);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -86,7 +133,7 @@ export default function BlossomServer() {
             <Server className="w-3 h-3 mr-1" />
             {serverRunning ? "Running" : "Stopped"}
           </Badge>
-          {serverRunning && <Badge variant="outline">Port 24242</Badge>}
+          {serverRunning && <Badge variant="outline">Port {port}</Badge>}
         </div>
       </div>
 
@@ -96,7 +143,9 @@ export default function BlossomServer() {
             <CardTitle className="text-sm font-medium">Total Blobs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{blobs.length}</div>
+            <div className="text-2xl font-bold">
+              {isLoadingBlobs ? <Loader2 className="w-6 h-6 animate-spin" /> : blobs.length}
+            </div>
           </CardContent>
         </Card>
 
@@ -106,7 +155,11 @@ export default function BlossomServer() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatFileSize(blobs.reduce((acc, blob) => acc + blob.size, 0))}
+              {isLoadingBlobs ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                formatFileSize(totalSize)
+              )}
             </div>
           </CardContent>
         </Card>
@@ -116,7 +169,7 @@ export default function BlossomServer() {
             <CardTitle className="text-sm font-medium">Server Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className={`text-2xl font-bold ${serverRunning ? "text-green-600" : "text-red-600"}`}>
               {serverRunning ? "Online" : "Offline"}
             </div>
           </CardContent>
@@ -138,15 +191,19 @@ export default function BlossomServer() {
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
             <input
               type="file"
-              onChange={async (name) => await handleFileUpload(name)}
+              onChange={handleFileUpload}
               className="hidden"
               id="file-upload"
-              disabled={uploading || !nsec}
+              disabled={uploadMutation.isPending || !nsec}
             />
             <label htmlFor="file-upload" className="cursor-pointer">
-              <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              {uploadMutation.isPending ? (
+                <Loader2 className="w-12 h-12 mx-auto text-blue-500 mb-4 animate-spin" />
+              ) : (
+                <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              )}
               <p className="text-lg font-medium">
-                {uploading ? "Uploading..." : "Click to upload files"}
+                {uploadMutation.isPending ? "Uploading..." : "Click to upload files"}
               </p>
               <p className="text-sm text-gray-500">
                 {!nsec
@@ -167,7 +224,11 @@ export default function BlossomServer() {
           <CardDescription>Files stored on your Blossom server</CardDescription>
         </CardHeader>
         <CardContent>
-          {blobs.length === 0 ? (
+          {isLoadingBlobs ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+          ) : blobs.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No files uploaded yet
             </div>
@@ -188,11 +249,24 @@ export default function BlossomServer() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="ghost">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => window.open(blob.url, "_blank")}
+                    >
                       <Download className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="ghost">
-                      <Trash2 className="w-4 h-4" />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteMutation.mutate(blob.sha256)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      {deleteMutation.isPending && deleteMutation.variables === blob.sha256 ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

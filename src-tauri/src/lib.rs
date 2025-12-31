@@ -39,6 +39,7 @@ pub fn run_app() {
         .plugin(tauri_plugin_notification::init())
         .invoke_handler(tauri::generate_handler![
             commands::greet,
+            http_server::get_server_port,
             commands::app::update_reminder_settings,
             commands::app::update_sync_settings,
             commands::app::trigger_sync,

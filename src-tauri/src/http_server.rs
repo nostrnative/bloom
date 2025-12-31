@@ -24,14 +24,27 @@ use tower_http::{
 };
 
 use crate::auth::{parse_authorization_header, validate_and_verify_auth};
-use crate::storage::{BlobDescriptor, Storage, StorageManager};
+use crate::storage::{Storage, StorageManager};
 
 use tauri::Manager;
+
+use std::sync::atomic::{AtomicU16, Ordering};
+
+static ACTIVE_PORT: AtomicU16 = AtomicU16::new(0);
 
 #[derive(Clone)]
 pub struct AppState {
     pub storage: Arc<StorageManager>,
     pub handle: Arc<RwLock<Option<AppHandle>>>,
+}
+
+#[tauri::command]
+pub fn get_server_port() -> u16 {
+    ACTIVE_PORT.load(Ordering::SeqCst)
+}
+
+pub fn set_active_port(port: u16) {
+    ACTIVE_PORT.store(port, Ordering::SeqCst);
 }
 
 #[derive(Deserialize, Debug)]
@@ -81,7 +94,37 @@ pub async fn start_server(handle: AppHandle) {
     let storage_dir = storage_dir.join("blobs");
     std::fs::create_dir_all(&storage_dir).expect("Failed to create storage directory");
 
-    let server_url = "http://127.0.0.1:24242".to_string();
+    let ports = [24242, 3838];
+    let mut listener = None;
+    let mut active_port = 0;
+
+    for port in ports {
+        match tokio::net::TcpListener::bind(format!("127.0.0.1:{}", port)).await {
+            Ok(l) => {
+                listener = Some(l);
+                active_port = port;
+                break;
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
+                tracing::warn!("Port {} in use, trying next...", port);
+                continue;
+            }
+            Err(e) => {
+                tracing::error!("Failed to bind to port {}: {}", port, e);
+            }
+        }
+    }
+
+    let listener = match listener {
+        Some(l) => l,
+        None => {
+            tracing::error!("Could not bind to any port (24242, 3838).");
+            return;
+        }
+    };
+
+    ACTIVE_PORT.store(active_port, Ordering::SeqCst);
+    let server_url = format!("http://127.0.0.1:{}", active_port);
     let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
 
     let state = AppState {
@@ -91,15 +134,11 @@ pub async fn start_server(handle: AppHandle) {
 
     let app = create_router(state);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:24242")
-        .await
-        .expect("Failed to bind to address");
+    tracing::info!("Blossom server listening on {}", server_url);
 
-    tracing::info!("Blossom server (BUD-11 Cache) listening on http://127.0.0.1:24242");
-
-    axum::serve(listener, app)
-        .await
-        .expect("Failed to start server");
+    if let Err(e) = axum::serve(listener, app).await {
+        tracing::error!("Failed to start server: {}", e);
+    }
 }
 
 async fn health_check() -> impl IntoResponse {
@@ -278,6 +317,7 @@ async fn upload_blob(
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
 
+    println!("{:?}", headers);
     let content_type = headers
         .get(header::CONTENT_TYPE)
         .and_then(|h| h.to_str().ok())
@@ -527,16 +567,20 @@ async fn report_blob(
 }
 
 async fn list_blobs(
+    State(state): State<AppState>,
     axum::extract::Path(_pubkey): axum::extract::Path<String>,
 ) -> Result<Response, Response> {
-    let blobs: Vec<BlobDescriptor> = Vec::new();
-    let json = serde_json::to_string(&blobs).unwrap();
-
-    Ok(Response::builder()
-        .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, "application/json")
-        .body(Body::from(json))
-        .unwrap())
+    match state.storage.list_all().await {
+        Ok(blobs) => {
+            let json = serde_json::to_string(&blobs).unwrap();
+            Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(json))
+                .unwrap())
+        }
+        Err(e) => Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e)),
+    }
 }
 
 fn error_response(status: StatusCode, message: &str) -> Response {

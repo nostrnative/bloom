@@ -51,7 +51,10 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
 
         let addr = format!("0.0.0.0:{}", port);
         let listener = match tokio::net::TcpListener::bind(&addr).await {
-            Ok(l) => l,
+            Ok(l) => {
+                http_server::set_active_port(port as u16);
+                l
+            }
             Err(e) => {
                 tracing::error!("Failed to bind to {}: {}", addr, e);
                 return;

@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AppState {
   nsec: string | null;
@@ -8,7 +8,7 @@ interface AppState {
   notificationsEnabled: boolean;
   reminderInterval: number;
   selectedCalendarId: string | null;
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   localRelay: string | null;
   syncEnabled: boolean;
   syncIntervalMinutes: number;
@@ -19,6 +19,7 @@ interface AppState {
   lastNotificationVisit: number;
   selectedContactPubkeys: string[];
   interestedContactPubkeys: string[];
+  blossomPort: number;
   statusFilters: {
     accepted: boolean;
     tentative: boolean;
@@ -30,7 +31,7 @@ interface AppState {
   setNotificationsEnabled: (enabled: boolean) => void;
   setReminderInterval: (interval: number) => void;
   setSelectedCalendarId: (id: string | null) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: "light" | "dark" | "system") => void;
   setLocalRelay: (relay: string | null) => void;
   setSyncEnabled: (enabled: boolean) => void;
   setSyncIntervalMinutes: (interval: number) => void;
@@ -43,6 +44,7 @@ interface AppState {
   toggleSelectedContactPubkey: (pubkey: string) => void;
   setInterestedContactPubkeys: (pubkeys: string[]) => void;
   toggleInterestedContactPubkey: (pubkey: string) => void;
+  setBlossomPort: (port: number) => void;
   setStatusFilters: (filters: {
     accepted: boolean;
     tentative: boolean;
@@ -59,15 +61,15 @@ export const useAppStore = create<AppState>()(
       nsec: null,
       pubkey: null,
       relays: [
-        'wss://relay.damus.io',
-        'wss://nos.lol',
-        'wss://relay.primal.net',
-        'wss://relay.0xchat.com',
+        "wss://relay.damus.io",
+        "wss://nos.lol",
+        "wss://relay.primal.net",
+        "wss://relay.0xchat.com",
       ],
       notificationsEnabled: false,
       reminderInterval: 1,
       selectedCalendarId: null,
-      theme: 'system',
+      theme: "system",
       localRelay: null,
       syncEnabled: false,
       syncIntervalMinutes: 5,
@@ -78,6 +80,7 @@ export const useAppStore = create<AppState>()(
       lastNotificationVisit: 0,
       selectedContactPubkeys: [],
       interestedContactPubkeys: [],
+      blossomPort: 3838,
       statusFilters: {
         accepted: true,
         tentative: true,
@@ -109,7 +112,7 @@ export const useAppStore = create<AppState>()(
         if (selectedContactPubkeys.includes(pk)) {
           set({
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk
+              (k) => k !== pk,
             ),
           });
         } else {
@@ -123,16 +126,17 @@ export const useAppStore = create<AppState>()(
         if (interestedContactPubkeys.includes(pk)) {
           set({
             interestedContactPubkeys: interestedContactPubkeys.filter(
-              (k) => k !== pk
+              (k) => k !== pk,
             ),
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk
+              (k) => k !== pk,
             ),
           });
         } else {
           set({ interestedContactPubkeys: [...interestedContactPubkeys, pk] });
         }
       },
+      setBlossomPort: (port) => set({ blossomPort: port }),
       setStatusFilters: (filters) => set({ statusFilters: filters }),
       getAllRelays: () => {
         const state = get();
@@ -154,7 +158,7 @@ export const useAppStore = create<AppState>()(
         }),
     }),
     {
-      name: 'calendar-storage',
-    }
-  )
+      name: "calendar-storage",
+    },
+  ),
 );
