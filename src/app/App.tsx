@@ -16,31 +16,31 @@ function AppContent() {
   const { theme, setBlossomPort } = useAppStore();
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+
     const initPort = async () => {
       try {
         const activePort = await invoke<number>("get_server_port");
         if (activePort && activePort !== 0) {
           setBlossomPort(activePort);
-          return true; // Found port
+          if (interval) clearInterval(interval);
+          return true;
         }
       } catch (error) {
         console.error("Failed to fetch server port:", error);
       }
-      return false; // Port not found yet
+      return false;
     };
 
-    // Try immediately
     initPort().then((found) => {
       if (!found) {
-        // If not found, poll every second until we get it
-        const interval = setInterval(async () => {
-          if (await initPort()) {
-            clearInterval(interval);
-          }
-        }, 1000);
-        return () => clearInterval(interval);
+        interval = setInterval(initPort, 1000);
       }
     });
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [setBlossomPort]);
 
   useEffect(() => {

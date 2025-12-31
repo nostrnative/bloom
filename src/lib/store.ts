@@ -20,6 +20,7 @@ interface AppState {
   selectedContactPubkeys: string[];
   interestedContactPubkeys: string[];
   blossomPort: number;
+  preferredPort: number | null;
   statusFilters: {
     accepted: boolean;
     tentative: boolean;
@@ -31,7 +32,7 @@ interface AppState {
   setNotificationsEnabled: (enabled: boolean) => void;
   setReminderInterval: (interval: number) => void;
   setSelectedCalendarId: (id: string | null) => void;
-  setTheme: (theme: "light" | "dark" | "system") => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setLocalRelay: (relay: string | null) => void;
   setSyncEnabled: (enabled: boolean) => void;
   setSyncIntervalMinutes: (interval: number) => void;
@@ -45,6 +46,7 @@ interface AppState {
   setInterestedContactPubkeys: (pubkeys: string[]) => void;
   toggleInterestedContactPubkey: (pubkey: string) => void;
   setBlossomPort: (port: number) => void;
+  setPreferredPort: (port: number | null) => void;
   setStatusFilters: (filters: {
     accepted: boolean;
     tentative: boolean;
@@ -80,7 +82,8 @@ export const useAppStore = create<AppState>()(
       lastNotificationVisit: 0,
       selectedContactPubkeys: [],
       interestedContactPubkeys: [],
-      blossomPort: 3838,
+      blossomPort: 24242,
+      preferredPort: null,
       statusFilters: {
         accepted: true,
         tentative: true,
@@ -112,10 +115,11 @@ export const useAppStore = create<AppState>()(
         if (selectedContactPubkeys.includes(pk)) {
           set({
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk,
+              (k) => k !== pk
             ),
           });
-        } else {
+        }
+        else {
           set({ selectedContactPubkeys: [...selectedContactPubkeys, pk] });
         }
       },
@@ -126,17 +130,19 @@ export const useAppStore = create<AppState>()(
         if (interestedContactPubkeys.includes(pk)) {
           set({
             interestedContactPubkeys: interestedContactPubkeys.filter(
-              (k) => k !== pk,
+              (k) => k !== pk
             ),
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk,
+              (k) => k !== pk
             ),
           });
-        } else {
+        }
+        else {
           set({ interestedContactPubkeys: [...interestedContactPubkeys, pk] });
         }
       },
       setBlossomPort: (port) => set({ blossomPort: port }),
+      setPreferredPort: (port) => set({ preferredPort: port }),
       setStatusFilters: (filters) => set({ statusFilters: filters }),
       getAllRelays: () => {
         const state = get();

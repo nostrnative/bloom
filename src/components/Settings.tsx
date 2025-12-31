@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
+import { Badge } from '@/components/ui/badge';
 import { nostrApi, UserProfile } from '@/lib/api';
 import { useCalendars } from '@/hooks/useCalendars';
 import {
@@ -51,11 +52,15 @@ export default function Settings() {
     getAllRelays,
     interestedContactPubkeys,
     toggleInterestedContactPubkey,
+    preferredPort,
+    setPreferredPort,
+    blossomPort,
   } = useAppStore();
   const { calendars, createCalendar, deleteCalendar } = useCalendars();
   const [inputNsec, setInputNsec] = useState(nsec || '');
   const [newRelay, setNewRelay] = useState('');
   const [inputLocalRelay, setInputLocalRelay] = useState(localRelay || '');
+  const [inputPort, setInputPort] = useState(preferredPort?.toString() || '');
   const [newCalName, setNewCalName] = useState('');
   const [newCalDesc, setNewCalDesc] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,6 +72,16 @@ export default function Settings() {
   const handleLocalRelayChange = (value: string) => {
     setInputLocalRelay(value);
     setLocalRelay(value || null);
+  };
+
+  const handlePortChange = (value: string) => {
+    setInputPort(value);
+    const port = parseInt(value);
+    if (!isNaN(port) && port > 0 && port < 65536) {
+      setPreferredPort(port);
+    } else if (value === '') {
+      setPreferredPort(null);
+    }
   };
 
   useEffect(() => {
@@ -403,6 +418,38 @@ export default function Settings() {
                 </div>
               </div>
             )}
+          </section>
+
+          {/* Blossom Server Section */}
+          <section className='space-y-4'>
+            <h3 className='border-b pb-2 text-lg font-semibold text-zinc-700 dark:text-zinc-300'>
+              Blossom Server
+            </h3>
+            <div className='space-y-4'>
+              <div className='flex items-center justify-between rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900'>
+                <div className='flex flex-col'>
+                  <span className='text-sm font-medium'>Current Port</span>
+                  <span className='text-xs text-zinc-500'>
+                    Port used by the active server
+                  </span>
+                </div>
+                <Badge className='bg-indigo-600'>{blossomPort}</Badge>
+              </div>
+
+              <div className='space-y-2'>
+                <label className='text-sm font-medium'>Manual Port Override</label>
+                <input
+                  type='number'
+                  className='w-full rounded-md border p-2 dark:border-zinc-700 dark:bg-zinc-900'
+                  placeholder='Default (24242)'
+                  value={inputPort}
+                  onChange={(e) => handlePortChange(e.target.value)}
+                />
+                <p className='text-xs text-zinc-500'>
+                  Set a specific port to use. Requires app restart to apply to the server.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* Sync Section */}

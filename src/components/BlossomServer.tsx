@@ -8,7 +8,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Server, List, Trash2, Download, Loader2 } from "lucide-react";
+import {
+  Upload,
+  Server,
+  List,
+  Trash2,
+  Download,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -24,19 +32,32 @@ export default function BlossomServer() {
   const { nsec, pubkey, blossomPort: port } = useAppStore();
   const queryClient = useQueryClient();
   const [serverRunning, setServerRunning] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const serverUrl = useMemo(() => `http://127.0.0.1:${port}`, [port]);
 
-  useEffect(() => {
-    const checkServer = async () => {
-      try {
-        const response = await fetch(`${serverUrl}/`);
-        setServerRunning(response.ok);
-      } catch (error) {
-        setServerRunning(false);
-      }
-    };
+  const checkServer = async () => {
+    try {
+      const response = await fetch(`${serverUrl}/`, {
+        method: "GET",
+        cache: "no-cache",
+        headers: { Accept: "application/json" },
+      });
+      setServerRunning(response.ok);
+      if (response.ok) setLastError(null);
+      else
+        setLastError(
+          `Server returned status: ${response.status} ${response.statusText}`,
+        );
+    } catch (error) {
+      setServerRunning(false);
+      setLastError(
+        `Fetch failed: ${error instanceof Error ? error.message : String(error)}. Try checking if the server is allowed to run on port ${port}.`,
+      );
+    }
+  };
 
+  useEffect(() => {
     checkServer();
     const interval = setInterval(checkServer, 5000);
     return () => clearInterval(interval);
@@ -133,7 +154,7 @@ export default function BlossomServer() {
             <Server className="w-3 h-3 mr-1" />
             {serverRunning ? "Running" : "Stopped"}
           </Badge>
-          {serverRunning && <Badge variant="outline">Port {port}</Badge>}
+          <Badge variant="outline">Port {port}</Badge>
         </div>
       </div>
 
@@ -144,7 +165,11 @@ export default function BlossomServer() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingBlobs ? <Loader2 className="w-6 h-6 animate-spin" /> : blobs.length}
+              {isLoadingBlobs ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                blobs.length
+              )}
             </div>
           </CardContent>
         </Card>
@@ -169,12 +194,40 @@ export default function BlossomServer() {
             <CardTitle className="text-sm font-medium">Server Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${serverRunning ? "text-green-600" : "text-red-600"}`}>
+            <div
+              className={`text-2xl font-bold ${serverRunning ? "text-green-600" : "text-red-600"}`}
+            >
               {serverRunning ? "Online" : "Offline"}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {lastError && (
+        <Card className="bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-medium text-red-800 dark:text-red-400">
+              Connection Debug Info
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={checkServer}
+              className="h-8 px-2 text-red-700 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/20"
+            >
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Retry
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs font-mono text-red-700 dark:text-red-300 break-all">
+              URL: {serverUrl}
+              <br />
+              Error: {lastError}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -203,7 +256,9 @@ export default function BlossomServer() {
                 <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               )}
               <p className="text-lg font-medium">
-                {uploadMutation.isPending ? "Uploading..." : "Click to upload files"}
+                {uploadMutation.isPending
+                  ? "Uploading..."
+                  : "Click to upload files"}
               </p>
               <p className="text-sm text-gray-500">
                 {!nsec
@@ -262,7 +317,8 @@ export default function BlossomServer() {
                       onClick={() => deleteMutation.mutate(blob.sha256)}
                       disabled={deleteMutation.isPending}
                     >
-                      {deleteMutation.isPending && deleteMutation.variables === blob.sha256 ? (
+                      {deleteMutation.isPending &&
+                      deleteMutation.variables === blob.sha256 ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Trash2 className="w-4 h-4" />

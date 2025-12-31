@@ -17,7 +17,7 @@ android {
     compileSdk = 36
     namespace = "com.blossom.server"
     defaultConfig {
-        manifestPlaceholders["usesCleartextTraffic"] = "false"
+        manifestPlaceholders["usesCleartextTraffic"] = "true"
         applicationId = "com.blossom.server"
         minSdk = 24
         targetSdk = 36
