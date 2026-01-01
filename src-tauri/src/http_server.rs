@@ -23,7 +23,6 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::auth::{parse_authorization_header, validate_and_verify_auth};
 use crate::storage::{Storage, StorageManager};
 
 use tauri::Manager;
@@ -64,6 +63,7 @@ impl FromRef<AppState> for Arc<StorageManager> {
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(health_check).head(health_check))
+        .route("/", put(upload_blob))
         .route("/{sha256}", get(get_blob).head(head_blob))
         .route("/{sha256}", delete(delete_blob))
         .route("/upload", put(upload_blob).head(head_upload))
@@ -171,20 +171,6 @@ async fn get_blob(
         return Err(error_response(StatusCode::NOT_FOUND, "Blob not found"));
     }
 
-    let auth_header = headers.get(header::AUTHORIZATION);
-    if let Some(auth) = auth_header {
-        if let Ok(auth_str) = auth.to_str() {
-            if let Ok(event) = parse_authorization_header(auth_str) {
-                if let Err(e) = validate_and_verify_auth(&event, Some("get"), Some(sha256)) {
-                    return Err(error_response(
-                        StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
-                        &e.message,
-                    ));
-                }
-            }
-        }
-    }
-
     match state.storage.get(sha256).await {
         Ok((data, descriptor)) => {
             let mut status = StatusCode::OK;
@@ -244,20 +230,6 @@ async fn head_blob(
             }
         }
         return Err(error_response(StatusCode::NOT_FOUND, "Blob not found"));
-    }
-
-    let auth_header = headers.get(header::AUTHORIZATION);
-    if let Some(auth) = auth_header {
-        if let Ok(auth_str) = auth.to_str() {
-            if let Ok(event) = parse_authorization_header(auth_str) {
-                if let Err(e) = validate_and_verify_auth(&event, Some("get"), Some(sha256)) {
-                    return Err(error_response(
-                        StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
-                        &e.message,
-                    ));
-                }
-            }
-        }
     }
 
     match state.storage.get_descriptor(sha256).await {
@@ -323,20 +295,6 @@ async fn upload_blob(
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
-    let auth_header = headers.get(header::AUTHORIZATION);
-    if let Some(auth) = auth_header {
-        if let Ok(auth_str) = auth.to_str() {
-            if let Ok(event) = parse_authorization_header(auth_str) {
-                if let Err(e) = validate_and_verify_auth(&event, Some("upload"), Some(&sha256)) {
-                    return Err(error_response(
-                        StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
-                        &e.message,
-                    ));
-                }
-            }
-        }
-    }
-
     match state
         .storage
         .store(body.to_vec(), &sha256, content_type)
@@ -391,39 +349,10 @@ async fn head_upload(
 
 async fn delete_blob(
     State(state): State<AppState>,
-    axum::extract::Path(sha256): axum::extract::Path<String>,
-    headers: HeaderMap,
+    axum::extract::Path(sha256_ext): axum::extract::Path<String>,
 ) -> Result<Response, Response> {
-    let auth_header = headers.get(header::AUTHORIZATION);
-    if auth_header.is_none() {
-        return Err(error_response(
-            StatusCode::UNAUTHORIZED,
-            "Authorization required",
-        ));
-    }
-
-    if let Ok(auth_str) = auth_header.unwrap().to_str() {
-        if let Ok(event) = parse_authorization_header(auth_str) {
-            if let Err(e) = validate_and_verify_auth(&event, Some("delete"), Some(&sha256)) {
-                return Err(error_response(
-                    StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
-                    &e.message,
-                ));
-            }
-        } else {
-            return Err(error_response(
-                StatusCode::UNAUTHORIZED,
-                "Invalid authorization",
-            ));
-        }
-    } else {
-        return Err(error_response(
-            StatusCode::UNAUTHORIZED,
-            "Invalid authorization",
-        ));
-    }
-
-    match state.storage.delete(&sha256).await {
+    let sha256 = strip_extension(&sha256_ext);
+    match state.storage.delete(sha256).await {
         Ok(_) => Ok(Response::builder()
             .status(StatusCode::OK)
             .body(Body::empty())
@@ -443,20 +372,6 @@ async fn upload_media(
         .get(header::CONTENT_TYPE)
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
-
-    let auth_header = headers.get(header::AUTHORIZATION);
-    if let Some(auth) = auth_header {
-        if let Ok(auth_str) = auth.to_str() {
-            if let Ok(event) = parse_authorization_header(auth_str) {
-                if let Err(e) = validate_and_verify_auth(&event, Some("media"), Some(&sha256)) {
-                    return Err(error_response(
-                        StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
-                        &e.message,
-                    ));
-                }
-            }
-        }
-    }
 
     match state
         .storage
@@ -492,17 +407,8 @@ struct MirrorRequest {
 
 async fn mirror_blob(
     State(state): State<AppState>,
-    headers: HeaderMap,
     axum::extract::Json(req): axum::extract::Json<MirrorRequest>,
 ) -> Result<Response, Response> {
-    let auth_header = headers.get(header::AUTHORIZATION);
-    if auth_header.is_none() {
-        return Err(error_response(
-            StatusCode::UNAUTHORIZED,
-            "Authorization required",
-        ));
-    }
-
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()
@@ -526,17 +432,6 @@ async fn mirror_blob(
         .map_err(|e| error_response(StatusCode::BAD_GATEWAY, &e.to_string()))?;
 
     let sha256 = crate::storage::StorageManager::compute_sha256(&data);
-
-    if let Ok(auth_str) = auth_header.unwrap().to_str() {
-        if let Ok(event) = parse_authorization_header(auth_str) {
-            if let Err(e) = validate_and_verify_auth(&event, Some("upload"), Some(&sha256)) {
-                return Err(error_response(
-                    StatusCode::from_u16(e.http_status).unwrap_or(StatusCode::UNAUTHORIZED),
-                    &e.message,
-                ));
-            }
-        }
-    }
 
     match state
         .storage
