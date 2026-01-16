@@ -400,7 +400,7 @@ async fn head_media(
         .unwrap())
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct MirrorRequest {
     url: String,
 }

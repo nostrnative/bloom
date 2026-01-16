@@ -1,14 +1,14 @@
-use jni::JNIEnv;
-use jni::objects::JClass;
-use jni::sys::jint;
-use std::sync::atomic::{AtomicBool, Ordering};
-use tokio::runtime::Runtime;
-use std::sync::Mutex;
-use once_cell::sync::Lazy;
 use crate::http_server;
 use crate::storage::StorageManager;
-use std::sync::Arc;
+use jni::objects::JClass;
+use jni::sys::jint;
+use jni::JNIEnv;
+use once_cell::sync::Lazy;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::sync::Mutex;
+use tokio::runtime::Runtime;
 
 static RUNNING: AtomicBool = AtomicBool::new(false);
 static RUNTIME: Lazy<Mutex<Option<Runtime>>> = Lazy::new(|| Mutex::new(None));
@@ -27,10 +27,10 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
     RUNNING.store(true, Ordering::SeqCst);
 
     let rt = Runtime::new().expect("Failed to create tokio runtime");
-    
+
     rt.spawn(async move {
         tracing::info!("Background Blossom server starting on port {}...", port);
-        
+
         // Android specific storage path - ideally passed from Kotlin
         let storage_dir = PathBuf::from("/data/data/com.blossom.server/files/blobs");
         if let Err(e) = std::fs::create_dir_all(&storage_dir) {
@@ -66,7 +66,7 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
         if let Err(e) = axum::serve(listener, app).await {
             tracing::error!("Server error: {}", e);
         }
-        
+
         RUNNING.store(false, Ordering::SeqCst);
     });
 
@@ -86,3 +86,5 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_stopRustServer(
         rt.shutdown_background();
     }
 }
+
+// cashuBo2F0gaJhaUgAUAVQ8ElBRmFwhqNhYRkCAGFzeEAwYWRmMDU0MDkyNzdiMGQ0NTFiNmNmMWNmMmQzMDAyY2E5YjllMmZjOGVmZTczZDM3ZTI1MDg0NTY0ODljNzE1YWNYIQIhsWmVgAR-Z7o43ZIuRTolGfZ4Xr4auicaZjoLZgtw3KNhYRkBAGFzeEA1MWFhNWRkOTUwNWZmNTlhNzBjMTUxYzBhMTZhOTcxNTg2MWRlYzQzYzkyZTU4MzA2YmVjZWY4MDFhZjhhZjlmYWNYIQLh4k3RLcJ9i-LjgJo_RSI9SuqUmjbz3Ttfkadh37n2NqNhYRiAYXN4QGI5ZTNkZThlYTMyMTQxYmQ1YjNhYmI2ODMxYzM2NTczYTk4M2JmZDI2ODBlOTFkZWVhM2RjYzEzY2I1Y2Y1NDlhY1ghArImmHR_xaoyFesmwMz8msqlfwnlS4NF3tD4pU_Wl0_wo2FhGEBhc3hANmYwNzY5OTEyZjdlYWM5NTA3MTIzNDg2Y2EwNjBhNmNjNWFhYmM2MzllYmE2ZTgxZGQwZWNkMDVmMjJlMTgzYmFjWCEDVTytcPGBHyAUMUkj5RJpvkd-SiNtFVmX3_CIdOz8akyjYWEYIGFzeEA3MzViOWI1ZDAzOWRkMWEwNWQ4YTQzZTJjNjk3ZmExOGI2ZWRhYjM5MTNlYzFjMjM5YjRmNGU5YTYxYjUxMzlhYWNYIQLRJ8TykwA4bAMkrgwz37acyrmd1p8SXsFaTJte9jkJ5qNhYQhhc3hANjY3MjM4OGU3OWM2ZTE3NmUzOGRmMjMwZGY2YmY2OTY2NmM4Mjg5OWEyNWM5M2IxM2JkN2M1YmU3NDYwYzA0Y2FjWCEDyvyGuvhFxv63-3OB11G0mEMljX9iydyRec9LJ5PmV0FhbXgiaHR0cHM6Ly9taW50Lm1pbmliaXRzLmNhc2gvQml0Y29pbmF1Y3NhdA

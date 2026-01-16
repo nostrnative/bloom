@@ -5949,6 +5949,648 @@
           "markdownDescription": "This enables all file write related commands without any pre-configured accessible paths."
         },
         {
+          "description": "Default permissions for tauri-plugin-nostrnative plugin. Enables all commands by default.\n#### This default permission set includes:\n\n- `allow-generate-new-nsec`\n- `allow-parse-pubkey`\n- `allow-verify-nsec`\n- `allow-fetch-calendar-events`\n- `allow-publish-batch-calendar-events`\n- `allow-publish-calendar-event`\n- `allow-delete-calendar-event`\n- `allow-fetch-calendars`\n- `allow-publish-calendar`\n- `allow-delete-calendar`\n- `allow-fetch-profiles`\n- `allow-fetch-contact-list`\n- `allow-update-contact-list`\n- `allow-fetch-rsvps`\n- `allow-fetch-user-rsvps`\n- `allow-fetch-received-rsvps`\n- `allow-publish-rsvp`\n- `allow-send-direct-message`\n- `allow-fetch-bookmarks`\n- `allow-fetch-event-details`\n- `allow-save-bookmark`\n- `allow-remove-bookmark`\n- `allow-blossom-mirror`\n- `allow-blossom-upload`\n- `allow-blossom-upload-content`\n- `allow-blossom-get-blob`\n- `allow-derive-pns-keys`\n- `allow-create-discovery-event`\n- `allow-decrypt-discovery-event`\n- `allow-publish-chat-message`\n- `allow-decrypt-pns-event`\n- `allow-fetch-pns-events`\n- `allow-delete-chat-messages`\n- `allow-fetch-discovery-events`\n- `allow-create-note`\n- `allow-update-note`\n- `allow-delete-note`\n- `allow-fetch-notes`\n- `allow-create-notebook`\n- `allow-fetch-notebooks`\n- `allow-add-note-to-notebook`\n- `allow-remove-note-from-notebook`\n- `allow-delete-notebook`\n- `allow-fetch-nfp-observations`\n- `allow-publish-nfp-observation`\n- `allow-update-nfp-observation`\n- `allow-fetch-nfp-cycles`\n- `allow-publish-nfp-cycle`\n- `allow-update-nfp-cycle`\n- `allow-fetch-nfp-settings`\n- `allow-publish-nfp-settings`\n- `allow-update-nfp-settings`\n- `allow-delete-nfp-data`",
+          "type": "string",
+          "const": "nostrnative:default",
+          "markdownDescription": "Default permissions for tauri-plugin-nostrnative plugin. Enables all commands by default.\n#### This default permission set includes:\n\n- `allow-generate-new-nsec`\n- `allow-parse-pubkey`\n- `allow-verify-nsec`\n- `allow-fetch-calendar-events`\n- `allow-publish-batch-calendar-events`\n- `allow-publish-calendar-event`\n- `allow-delete-calendar-event`\n- `allow-fetch-calendars`\n- `allow-publish-calendar`\n- `allow-delete-calendar`\n- `allow-fetch-profiles`\n- `allow-fetch-contact-list`\n- `allow-update-contact-list`\n- `allow-fetch-rsvps`\n- `allow-fetch-user-rsvps`\n- `allow-fetch-received-rsvps`\n- `allow-publish-rsvp`\n- `allow-send-direct-message`\n- `allow-fetch-bookmarks`\n- `allow-fetch-event-details`\n- `allow-save-bookmark`\n- `allow-remove-bookmark`\n- `allow-blossom-mirror`\n- `allow-blossom-upload`\n- `allow-blossom-upload-content`\n- `allow-blossom-get-blob`\n- `allow-derive-pns-keys`\n- `allow-create-discovery-event`\n- `allow-decrypt-discovery-event`\n- `allow-publish-chat-message`\n- `allow-decrypt-pns-event`\n- `allow-fetch-pns-events`\n- `allow-delete-chat-messages`\n- `allow-fetch-discovery-events`\n- `allow-create-note`\n- `allow-update-note`\n- `allow-delete-note`\n- `allow-fetch-notes`\n- `allow-create-notebook`\n- `allow-fetch-notebooks`\n- `allow-add-note-to-notebook`\n- `allow-remove-note-from-notebook`\n- `allow-delete-notebook`\n- `allow-fetch-nfp-observations`\n- `allow-publish-nfp-observation`\n- `allow-update-nfp-observation`\n- `allow-fetch-nfp-cycles`\n- `allow-publish-nfp-cycle`\n- `allow-update-nfp-cycle`\n- `allow-fetch-nfp-settings`\n- `allow-publish-nfp-settings`\n- `allow-update-nfp-settings`\n- `allow-delete-nfp-data`"
+        },
+        {
+          "description": "Enables the add_note_to_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-add-note-to-notebook",
+          "markdownDescription": "Enables the add_note_to_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the blossom_get_blob command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-blossom-get-blob",
+          "markdownDescription": "Enables the blossom_get_blob command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the blossom_mirror command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-blossom-mirror",
+          "markdownDescription": "Enables the blossom_mirror command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the blossom_upload command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-blossom-upload",
+          "markdownDescription": "Enables the blossom_upload command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the blossom_upload_content command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-blossom-upload-content",
+          "markdownDescription": "Enables the blossom_upload_content command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_discovery_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-create-discovery-event",
+          "markdownDescription": "Enables the create_discovery_event command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_note command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-create-note",
+          "markdownDescription": "Enables the create_note command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-create-notebook",
+          "markdownDescription": "Enables the create_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the decrypt_discovery_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-decrypt-discovery-event",
+          "markdownDescription": "Enables the decrypt_discovery_event command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the decrypt_pns_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-decrypt-pns-event",
+          "markdownDescription": "Enables the decrypt_pns_event command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_calendar command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-calendar",
+          "markdownDescription": "Enables the delete_calendar command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_calendar_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-calendar-event",
+          "markdownDescription": "Enables the delete_calendar_event command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_chat_messages command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-chat-messages",
+          "markdownDescription": "Enables the delete_chat_messages command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_nfp_data command.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-nfp-data",
+          "markdownDescription": "Enables the delete_nfp_data command."
+        },
+        {
+          "description": "Enables the delete_note command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-note",
+          "markdownDescription": "Enables the delete_note command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-notebook",
+          "markdownDescription": "Enables the delete_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the derive_pns_keys command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-derive-pns-keys",
+          "markdownDescription": "Enables the derive_pns_keys command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_bookmarks command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-bookmarks",
+          "markdownDescription": "Enables the fetch_bookmarks command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_calendar_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-calendar-events",
+          "markdownDescription": "Enables the fetch_calendar_events command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_calendars command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-calendars",
+          "markdownDescription": "Enables the fetch_calendars command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_contact_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-contact-list",
+          "markdownDescription": "Enables the fetch_contact_list command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_discovery_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-discovery-events",
+          "markdownDescription": "Enables the fetch_discovery_events command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_event_details command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-event-details",
+          "markdownDescription": "Enables the fetch_event_details command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_nfp_cycles command.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-nfp-cycles",
+          "markdownDescription": "Enables the fetch_nfp_cycles command."
+        },
+        {
+          "description": "Enables the fetch_nfp_observations command.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-nfp-observations",
+          "markdownDescription": "Enables the fetch_nfp_observations command."
+        },
+        {
+          "description": "Enables the fetch_nfp_settings command.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-nfp-settings",
+          "markdownDescription": "Enables the fetch_nfp_settings command."
+        },
+        {
+          "description": "Enables the fetch_notebooks command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-notebooks",
+          "markdownDescription": "Enables the fetch_notebooks command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_notes command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-notes",
+          "markdownDescription": "Enables the fetch_notes command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_pns_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-pns-events",
+          "markdownDescription": "Enables the fetch_pns_events command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_profiles command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-profiles",
+          "markdownDescription": "Enables the fetch_profiles command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_received_rsvps command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-received-rsvps",
+          "markdownDescription": "Enables the fetch_received_rsvps command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_rsvps command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-rsvps",
+          "markdownDescription": "Enables the fetch_rsvps command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_user_rsvps command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-user-rsvps",
+          "markdownDescription": "Enables the fetch_user_rsvps command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the generate_new_nsec command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-generate-new-nsec",
+          "markdownDescription": "Enables the generate_new_nsec command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the parse_pubkey command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-parse-pubkey",
+          "markdownDescription": "Enables the parse_pubkey command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_batch_calendar_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-batch-calendar-events",
+          "markdownDescription": "Enables the publish_batch_calendar_events command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_calendar command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-calendar",
+          "markdownDescription": "Enables the publish_calendar command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_calendar_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-calendar-event",
+          "markdownDescription": "Enables the publish_calendar_event command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_chat_message command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-chat-message",
+          "markdownDescription": "Enables the publish_chat_message command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_nfp_cycle command.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-nfp-cycle",
+          "markdownDescription": "Enables the publish_nfp_cycle command."
+        },
+        {
+          "description": "Enables the publish_nfp_observation command.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-nfp-observation",
+          "markdownDescription": "Enables the publish_nfp_observation command."
+        },
+        {
+          "description": "Enables the publish_nfp_settings command.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-nfp-settings",
+          "markdownDescription": "Enables the publish_nfp_settings command."
+        },
+        {
+          "description": "Enables the publish_rsvp command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-rsvp",
+          "markdownDescription": "Enables the publish_rsvp command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remove_bookmark command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-remove-bookmark",
+          "markdownDescription": "Enables the remove_bookmark command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remove_note_from_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-remove-note-from-notebook",
+          "markdownDescription": "Enables the remove_note_from_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_bookmark command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-save-bookmark",
+          "markdownDescription": "Enables the save_bookmark command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the send_direct_message command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-send-direct-message",
+          "markdownDescription": "Enables the send_direct_message command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_contact_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-update-contact-list",
+          "markdownDescription": "Enables the update_contact_list command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_nfp_cycle command.",
+          "type": "string",
+          "const": "nostrnative:allow-update-nfp-cycle",
+          "markdownDescription": "Enables the update_nfp_cycle command."
+        },
+        {
+          "description": "Enables the update_nfp_observation command.",
+          "type": "string",
+          "const": "nostrnative:allow-update-nfp-observation",
+          "markdownDescription": "Enables the update_nfp_observation command."
+        },
+        {
+          "description": "Enables the update_nfp_settings command.",
+          "type": "string",
+          "const": "nostrnative:allow-update-nfp-settings",
+          "markdownDescription": "Enables the update_nfp_settings command."
+        },
+        {
+          "description": "Enables the update_note command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-update-note",
+          "markdownDescription": "Enables the update_note command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the verify_nsec command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-verify-nsec",
+          "markdownDescription": "Enables the verify_nsec command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the add_note_to_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-add-note-to-notebook",
+          "markdownDescription": "Denies the add_note_to_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the blossom_get_blob command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-blossom-get-blob",
+          "markdownDescription": "Denies the blossom_get_blob command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the blossom_mirror command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-blossom-mirror",
+          "markdownDescription": "Denies the blossom_mirror command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the blossom_upload command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-blossom-upload",
+          "markdownDescription": "Denies the blossom_upload command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the blossom_upload_content command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-blossom-upload-content",
+          "markdownDescription": "Denies the blossom_upload_content command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_discovery_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-create-discovery-event",
+          "markdownDescription": "Denies the create_discovery_event command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_note command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-create-note",
+          "markdownDescription": "Denies the create_note command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-create-notebook",
+          "markdownDescription": "Denies the create_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the decrypt_discovery_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-decrypt-discovery-event",
+          "markdownDescription": "Denies the decrypt_discovery_event command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the decrypt_pns_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-decrypt-pns-event",
+          "markdownDescription": "Denies the decrypt_pns_event command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_calendar command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-calendar",
+          "markdownDescription": "Denies the delete_calendar command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_calendar_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-calendar-event",
+          "markdownDescription": "Denies the delete_calendar_event command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_chat_messages command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-chat-messages",
+          "markdownDescription": "Denies the delete_chat_messages command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_nfp_data command.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-nfp-data",
+          "markdownDescription": "Denies the delete_nfp_data command."
+        },
+        {
+          "description": "Denies the delete_note command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-note",
+          "markdownDescription": "Denies the delete_note command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-notebook",
+          "markdownDescription": "Denies the delete_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the derive_pns_keys command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-derive-pns-keys",
+          "markdownDescription": "Denies the derive_pns_keys command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_bookmarks command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-bookmarks",
+          "markdownDescription": "Denies the fetch_bookmarks command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_calendar_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-calendar-events",
+          "markdownDescription": "Denies the fetch_calendar_events command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_calendars command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-calendars",
+          "markdownDescription": "Denies the fetch_calendars command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_contact_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-contact-list",
+          "markdownDescription": "Denies the fetch_contact_list command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_discovery_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-discovery-events",
+          "markdownDescription": "Denies the fetch_discovery_events command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_event_details command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-event-details",
+          "markdownDescription": "Denies the fetch_event_details command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_nfp_cycles command.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-nfp-cycles",
+          "markdownDescription": "Denies the fetch_nfp_cycles command."
+        },
+        {
+          "description": "Denies the fetch_nfp_observations command.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-nfp-observations",
+          "markdownDescription": "Denies the fetch_nfp_observations command."
+        },
+        {
+          "description": "Denies the fetch_nfp_settings command.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-nfp-settings",
+          "markdownDescription": "Denies the fetch_nfp_settings command."
+        },
+        {
+          "description": "Denies the fetch_notebooks command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-notebooks",
+          "markdownDescription": "Denies the fetch_notebooks command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_notes command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-notes",
+          "markdownDescription": "Denies the fetch_notes command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_pns_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-pns-events",
+          "markdownDescription": "Denies the fetch_pns_events command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_profiles command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-profiles",
+          "markdownDescription": "Denies the fetch_profiles command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_received_rsvps command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-received-rsvps",
+          "markdownDescription": "Denies the fetch_received_rsvps command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_rsvps command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-rsvps",
+          "markdownDescription": "Denies the fetch_rsvps command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_user_rsvps command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-user-rsvps",
+          "markdownDescription": "Denies the fetch_user_rsvps command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the generate_new_nsec command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-generate-new-nsec",
+          "markdownDescription": "Denies the generate_new_nsec command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the parse_pubkey command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-parse-pubkey",
+          "markdownDescription": "Denies the parse_pubkey command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_batch_calendar_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-batch-calendar-events",
+          "markdownDescription": "Denies the publish_batch_calendar_events command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_calendar command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-calendar",
+          "markdownDescription": "Denies the publish_calendar command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_calendar_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-calendar-event",
+          "markdownDescription": "Denies the publish_calendar_event command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_chat_message command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-chat-message",
+          "markdownDescription": "Denies the publish_chat_message command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_nfp_cycle command.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-nfp-cycle",
+          "markdownDescription": "Denies the publish_nfp_cycle command."
+        },
+        {
+          "description": "Denies the publish_nfp_observation command.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-nfp-observation",
+          "markdownDescription": "Denies the publish_nfp_observation command."
+        },
+        {
+          "description": "Denies the publish_nfp_settings command.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-nfp-settings",
+          "markdownDescription": "Denies the publish_nfp_settings command."
+        },
+        {
+          "description": "Denies the publish_rsvp command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-rsvp",
+          "markdownDescription": "Denies the publish_rsvp command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remove_bookmark command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-remove-bookmark",
+          "markdownDescription": "Denies the remove_bookmark command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remove_note_from_notebook command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-remove-note-from-notebook",
+          "markdownDescription": "Denies the remove_note_from_notebook command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_bookmark command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-save-bookmark",
+          "markdownDescription": "Denies the save_bookmark command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the send_direct_message command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-send-direct-message",
+          "markdownDescription": "Denies the send_direct_message command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_contact_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-update-contact-list",
+          "markdownDescription": "Denies the update_contact_list command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_nfp_cycle command.",
+          "type": "string",
+          "const": "nostrnative:deny-update-nfp-cycle",
+          "markdownDescription": "Denies the update_nfp_cycle command."
+        },
+        {
+          "description": "Denies the update_nfp_observation command.",
+          "type": "string",
+          "const": "nostrnative:deny-update-nfp-observation",
+          "markdownDescription": "Denies the update_nfp_observation command."
+        },
+        {
+          "description": "Denies the update_nfp_settings command.",
+          "type": "string",
+          "const": "nostrnative:deny-update-nfp-settings",
+          "markdownDescription": "Denies the update_nfp_settings command."
+        },
+        {
+          "description": "Denies the update_note command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-update-note",
+          "markdownDescription": "Denies the update_note command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the verify_nsec command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-verify-nsec",
+          "markdownDescription": "Denies the verify_nsec command without any pre-configured scope."
+        },
+        {
           "description": "This permission set configures which\nnotification features are by default exposed.\n\n#### Granted Permissions\n\nIt allows all notification related features.\n\n\n#### This default permission set includes:\n\n- `allow-is-permission-granted`\n- `allow-request-permission`\n- `allow-notify`\n- `allow-register-action-types`\n- `allow-register-listener`\n- `allow-cancel`\n- `allow-get-pending`\n- `allow-remove-active`\n- `allow-get-active`\n- `allow-check-permissions`\n- `allow-show`\n- `allow-batch`\n- `allow-list-channels`\n- `allow-delete-channel`\n- `allow-create-channel`\n- `allow-permission-state`",
           "type": "string",
           "const": "notification:default",

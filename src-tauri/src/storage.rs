@@ -171,6 +171,7 @@ impl StorageManager {
     }
 
     pub async fn list_all(&self) -> Result<Vec<BlobDescriptor>, String> {
+        println!("{:?}", self.base_path);
         let mut blobs = Vec::new();
         let mut entries = tokio::fs::read_dir(&self.base_path)
             .await

@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import * as nostrNative from 'tauri-plugin-nostrnative';
 
 export interface CalendarEventRequest {
   title: string;
@@ -54,15 +55,15 @@ export interface UserProfile {
 
 export const nostrApi = {
   verifyNsec: async (nsec: string): Promise<string> => {
-    return await invoke('verify_nsec', { nsec });
+    return await nostrNative.verifyNsec(nsec);
   },
 
   parsePubkey: async (pubkey: string): Promise<string> => {
-    return await invoke('parse_pubkey', { pubkey });
+    return await nostrNative.parsePubkey(pubkey);
   },
 
   generateNsec: async (): Promise<string> => {
-    return await invoke('generate_new_nsec');
+    return await nostrNative.generateNewNsec();
   },
 
   fetchEvents: async (
@@ -73,14 +74,12 @@ export const nostrApi = {
     rangeEnd?: number,
     authors?: string[]
   ): Promise<NostrEvent[]> => {
-    return await invoke('fetch_calendar_events', {
-      pubkey,
+    return (await nostrNative.fetchCalendarEvents(pubkey, relays, {
       nsec,
-      relays,
       rangeStart,
       rangeEnd,
       authors,
-    });
+    })) as unknown as NostrEvent[];
   },
 
   publishEvent: async (
@@ -88,7 +87,11 @@ export const nostrApi = {
     relays: string[],
     eventData: CalendarEventRequest
   ): Promise<string> => {
-    return await invoke('publish_calendar_event', { nsec, relays, eventData });
+    return await nostrNative.publishCalendarEvent(
+      nsec,
+      relays,
+      eventData as any
+    );
   },
 
   publishBatchEvents: async (
@@ -96,11 +99,11 @@ export const nostrApi = {
     relays: string[],
     events: CalendarEventRequest[]
   ): Promise<string[]> => {
-    return await invoke('publish_batch_calendar_events', {
+    return await nostrNative.publishBatchCalendarEvents(
       nsec,
       relays,
-      events,
-    });
+      events as any
+    );
   },
 
   deleteEvent: async (
@@ -109,14 +112,17 @@ export const nostrApi = {
     eventId: string | string[]
   ): Promise<string> => {
     const eventIds = Array.isArray(eventId) ? eventId : [eventId];
-    return await invoke('delete_calendar_event', { nsec, relays, eventIds });
+    return await nostrNative.deleteCalendarEvent(nsec, relays, eventIds);
   },
 
   fetchContactList: async (
     pubkey: string,
     relays: string[]
   ): Promise<Contact[]> => {
-    return await invoke('fetch_contact_list', { pubkey, relays });
+    return (await nostrNative.fetchContactList(
+      pubkey,
+      relays
+    )) as unknown as Contact[];
   },
 
   updateContactList: async (
@@ -124,14 +130,17 @@ export const nostrApi = {
     relays: string[],
     contacts: Contact[]
   ): Promise<string> => {
-    return await invoke('update_contact_list', { nsec, relays, contacts });
+    return await nostrNative.updateContactList(nsec, relays, contacts as any);
   },
 
   fetchProfiles: async (
     pubkeys: string[],
     relays: string[]
   ): Promise<UserProfile[]> => {
-    return await invoke('fetch_profiles', { pubkeys, relays });
+    return (await nostrNative.fetchProfiles(
+      pubkeys,
+      relays
+    )) as unknown as UserProfile[];
   },
 
   sendDirectMessage: async (
@@ -140,12 +149,12 @@ export const nostrApi = {
     message: string,
     relays: string[]
   ): Promise<string> => {
-    return await invoke('send_direct_message', {
+    return await nostrNative.sendDirectMessage(
       nsec,
       receiverPubkey,
       message,
-      relays,
-    });
+      relays
+    );
   },
 
   updateReminderSettings: async (settings: {
@@ -162,7 +171,10 @@ export const nostrApi = {
     pubkey: string,
     relays: string[]
   ): Promise<NostrEvent[]> => {
-    return await invoke('fetch_calendars', { pubkey, relays });
+    return (await nostrNative.fetchCalendars(
+      pubkey,
+      relays
+    )) as unknown as NostrEvent[];
   },
 
   publishCalendar: async (
@@ -170,7 +182,7 @@ export const nostrApi = {
     relays: string[],
     calendar: CalendarRequest
   ): Promise<string> => {
-    return await invoke('publish_calendar', { nsec, relays, calendar });
+    return await nostrNative.publishCalendar(nsec, relays, calendar as any);
   },
 
   deleteCalendar: async (
@@ -178,28 +190,37 @@ export const nostrApi = {
     relays: string[],
     identifier: string
   ): Promise<string> => {
-    return await invoke('delete_calendar', { nsec, relays, identifier });
+    return await nostrNative.deleteCalendar(nsec, relays, identifier);
   },
 
   fetchRSVPs: async (
     eventCoordinate: string,
     relays: string[]
   ): Promise<NostrEvent[]> => {
-    return await invoke('fetch_rsvps', { eventCoordinate, relays });
+    return (await nostrNative.fetchRsvps(
+      eventCoordinate,
+      relays
+    )) as unknown as NostrEvent[];
   },
 
   fetchUserRSVPs: async (
     pubkey: string,
     relays: string[]
   ): Promise<NostrEvent[]> => {
-    return await invoke('fetch_user_rsvps', { pubkey, relays });
+    return (await nostrNative.fetchUserRsvps(
+      pubkey,
+      relays
+    )) as unknown as NostrEvent[];
   },
 
   fetchReceivedRSVPs: async (
     pubkey: string,
     relays: string[]
   ): Promise<NostrEvent[]> => {
-    return await invoke('fetch_received_rsvps', { pubkey, relays });
+    return (await nostrNative.fetchReceivedRsvps(
+      pubkey,
+      relays
+    )) as unknown as NostrEvent[];
   },
 
   publishRSVP: async (
@@ -209,13 +230,13 @@ export const nostrApi = {
     status: 'accepted' | 'declined' | 'tentative',
     eventAuthor?: string
   ): Promise<string> => {
-    return await invoke('publish_rsvp', {
+    return await nostrNative.publishRsvp(
       nsec,
       relays,
       eventCoordinate,
       status,
-      eventAuthor,
-    });
+      eventAuthor
+    );
   },
 
   updateSyncSettings: async (settings: {
