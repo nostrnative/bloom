@@ -1,6 +1,6 @@
 use axum::{
     body::Body,
-    extract::{FromRef, Query, State},
+    extract::{DefaultBodyLimit, FromRef, Query, State},
     http::{
         header::{self, HeaderMap},
         StatusCode,
@@ -71,6 +71,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/mirror", put(mirror_blob))
         .route("/report", put(report_blob))
         .route("/list/{pubkey}", get(list_blobs))
+        .layer(DefaultBodyLimit::max(1024 * 1024 * 1024)) // 1GB
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
