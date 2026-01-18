@@ -161,11 +161,14 @@ async fn get_blob(
     headers: HeaderMap,
 ) -> Result<Response, Response> {
     let sha256 = strip_extension(&sha256_ext);
+    let extension = sha256_ext.split('.').nth(1).map(|s| s.to_string());
 
     if !state.storage.exists(sha256).await {
         // If not found locally, try proxying if hints are provided
         if !hints.xs.is_empty() || !hints.as_hints.is_empty() {
-            if let Ok(response) = proxy_blob(&state.storage, sha256, &hints).await {
+            if let Ok(response) =
+                proxy_blob(&state.storage, sha256, &hints, extension.as_deref()).await
+            {
                 return Ok(response);
             }
         }
@@ -174,6 +177,7 @@ async fn get_blob(
 
     match state.storage.get(sha256).await {
         Ok((data, descriptor)) => {
+            println!("{:?}", descriptor);
             let mut status = StatusCode::OK;
             let mut range_start = 0;
             let mut range_end = data.len();
@@ -290,6 +294,18 @@ async fn upload_blob(
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
 
+    let x_sha256 = headers.get("X-SHA-256").and_then(|h| h.to_str().ok());
+
+    let extension = headers
+        .get("X-File-Extension")
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s.to_string())
+        .or_else(|| {
+            x_sha256
+                .and_then(|s| s.split('.').nth(1))
+                .map(|s| s.to_string())
+        });
+
     println!("{:?}", headers);
     let content_type = headers
         .get(header::CONTENT_TYPE)
@@ -298,7 +314,7 @@ async fn upload_blob(
 
     match state
         .storage
-        .store(body.to_vec(), &sha256, content_type)
+        .store(body.to_vec(), &sha256, content_type, extension)
         .await
     {
         Ok(descriptor) => {
@@ -369,6 +385,18 @@ async fn upload_media(
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
 
+    let x_sha256 = headers.get("X-SHA-256").and_then(|h| h.to_str().ok());
+
+    let extension = headers
+        .get("X-File-Extension")
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s.to_string())
+        .or_else(|| {
+            x_sha256
+                .and_then(|s| s.split('.').nth(1))
+                .map(|s| s.to_string())
+        });
+
     let content_type = headers
         .get(header::CONTENT_TYPE)
         .and_then(|h| h.to_str().ok())
@@ -376,7 +404,7 @@ async fn upload_media(
 
     match state
         .storage
-        .store(body.to_vec(), &sha256, content_type)
+        .store(body.to_vec(), &sha256, content_type, extension)
         .await
     {
         Ok(descriptor) => {
@@ -410,6 +438,7 @@ async fn mirror_blob(
     State(state): State<AppState>,
     axum::extract::Json(req): axum::extract::Json<MirrorRequest>,
 ) -> Result<Response, Response> {
+    println!("{:?}", req);
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()
@@ -420,6 +449,14 @@ async fn mirror_blob(
         .send()
         .await
         .map_err(|e| error_response(StatusCode::BAD_GATEWAY, &e.to_string()))?;
+
+    let extension = req
+        .url
+        .split('?')
+        .next()
+        .and_then(|s| s.split('.').last())
+        .filter(|s| !s.is_empty() && s.len() < 5)
+        .map(|s| s.to_string());
 
     let content_type = response
         .headers()
@@ -436,7 +473,7 @@ async fn mirror_blob(
 
     match state
         .storage
-        .store(data.to_vec(), &sha256, content_type)
+        .store(data.to_vec(), &sha256, content_type, extension)
         .await
     {
         Ok(descriptor) => {
@@ -491,6 +528,7 @@ async fn proxy_blob(
     storage: &StorageManager,
     sha256: &str,
     hints: &ProxyHints,
+    extension: Option<&str>,
 ) -> Result<Response, String> {
     let client = reqwest::Client::new();
 
@@ -512,7 +550,12 @@ async fn proxy_blob(
                     if received_sha256 == sha256 {
                         // Store locally
                         let _ = storage
-                            .store(bytes.to_vec(), sha256, Some(content_type.clone()))
+                            .store(
+                                bytes.to_vec(),
+                                sha256,
+                                Some(content_type.clone()),
+                                extension.map(|s| s.to_string()),
+                            )
                             .await;
 
                         let response = Response::builder()
@@ -547,7 +590,12 @@ async fn proxy_blob(
                             let received_sha256 = StorageManager::compute_sha256(&bytes);
                             if received_sha256 == sha256 {
                                 let _ = storage
-                                    .store(bytes.to_vec(), sha256, Some(content_type.clone()))
+                                    .store(
+                                        bytes.to_vec(),
+                                        sha256,
+                                        Some(content_type.clone()),
+                                        extension.map(|s| s.to_string()),
+                                    )
                                     .await;
 
                                 let response = Response::builder()

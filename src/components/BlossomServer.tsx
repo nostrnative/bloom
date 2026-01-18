@@ -34,6 +34,12 @@ export default function BlossomServer() {
   const [serverRunning, setServerRunning] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  const [uploadStats, setUploadStats] = useState<{
+    total: number;
+    current: number;
+    isUploading: boolean;
+  }>({ total: 0, current: 0, isUploading: false });
+
   const serverUrl = useMemo(() => `http://127.0.0.1:${port}`, [port]);
 
   const checkServer = async () => {
@@ -79,10 +85,14 @@ export default function BlossomServer() {
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
+      const contentType = file.type || "application/octet-stream";
+      const fileExtension = file.name.split(".").pop();
+
       const response = await fetch(`${serverUrl}/upload`, {
         method: "PUT",
         headers: {
-          "Content-Type": file.type,
+          "Content-Type": contentType,
+          ...(fileExtension ? { "X-File-Extension": fileExtension } : {}),
         },
         body: uint8Array,
       });
@@ -114,14 +124,24 @@ export default function BlossomServer() {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadStats({
+      total: files.length,
+      current: 0,
+      isUploading: true,
+    });
 
     try {
-      await uploadMutation.mutateAsync(file);
+      for (let i = 0; i < files.length; i++) {
+        setUploadStats((prev) => ({ ...prev, current: i + 1 }));
+        await uploadMutation.mutateAsync(files[i]);
+      }
     } catch (error) {
       console.error("Upload failed:", error);
     } finally {
+      setUploadStats({ total: 0, current: 0, isUploading: false });
       event.target.value = "";
     }
   };
@@ -247,23 +267,25 @@ export default function BlossomServer() {
               onChange={handleFileUpload}
               className="hidden"
               id="file-upload"
-              disabled={uploadMutation.isPending || !nsec}
+              multiple
+              accept="image/*,video/*,audio/*,.pdf,.txt,.psbt"
+              disabled={uploadStats.isUploading || !nsec}
             />
             <label htmlFor="file-upload" className="cursor-pointer">
-              {uploadMutation.isPending ? (
+              {uploadStats.isUploading ? (
                 <Loader2 className="w-12 h-12 mx-auto text-blue-500 mb-4 animate-spin" />
               ) : (
                 <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               )}
               <p className="text-lg font-medium">
-                {uploadMutation.isPending
-                  ? "Uploading..."
+                {uploadStats.isUploading
+                  ? `Uploading (${uploadStats.current}/${uploadStats.total})...`
                   : "Click to upload files"}
               </p>
               <p className="text-sm text-gray-500">
                 {!nsec
                   ? "Set up your Nostr key in settings first"
-                  : "Drag and drop or click to select"}
+                  : "Drag and drop or click to select multiple files"}
               </p>
             </label>
           </div>

@@ -52,32 +52,30 @@ impl StorageManager {
         data: Vec<u8>,
         sha256: &str,
         mime_type: Option<String>,
+        extension: Option<String>,
     ) -> Result<BlobDescriptor, String> {
+        println!("{:?}", extension);
         let blob_path = self.get_blob_path(sha256);
         let descriptor_path = self.get_descriptor_path(sha256).await;
         println!("{:?}", mime_type);
 
-        let mime_type = mime_type.unwrap_or_else(|| {
-            mime_guess::from_path(sha256)
-                .first_or_octet_stream()
-                .to_string()
-        });
+        let mime_type = mime_type.unwrap_or_else(|| "application/octet-stream".to_string());
         let size = data.len() as u64;
         let uploaded = chrono::Utc::now().timestamp();
 
-        let extension = match mime_type.as_str() {
-            "application/pdf" => "pdf",
-            "image/png" => "png",
-            "image/jpeg" => "jpg",
-            "image/gif" => "gif",
-            "image/webp" => "webp",
-            "video/mp4" => "mp4",
-            "video/quicktime" => "mov",
-            "audio/mpeg" => "mp3",
-            "audio/wav" => "wav",
-            "text/plain" => "txt",
-            _ => "bin",
-        };
+        let extension = extension.unwrap_or_else(|| match mime_type.as_str() {
+            "application/pdf" => "pdf".to_string(),
+            "image/png" => "png".to_string(),
+            "image/jpeg" => "jpg".to_string(),
+            "image/gif" => "gif".to_string(),
+            "image/webp" => "webp".to_string(),
+            "video/mp4" => "mp4".to_string(),
+            "video/quicktime" => "mov".to_string(),
+            "audio/mpeg" => "mp3".to_string(),
+            "audio/wav" => "wav".to_string(),
+            "text/plain" => "txt".to_string(),
+            _ => "bin".to_string(),
+        });
 
         let url = format!(
             "{}/{}.{}",
@@ -171,7 +169,6 @@ impl StorageManager {
     }
 
     pub async fn list_all(&self) -> Result<Vec<BlobDescriptor>, String> {
-        println!("{:?}", self.base_path);
         let mut blobs = Vec::new();
         let mut entries = tokio::fs::read_dir(&self.base_path)
             .await
@@ -205,6 +202,7 @@ pub trait Storage: Send + Sync {
         data: Vec<u8>,
         sha256: &str,
         mime_type: Option<String>,
+        extension: Option<String>,
     ) -> Result<BlobDescriptor, String>;
     async fn get(&self, sha256: &str) -> Result<(Vec<u8>, BlobDescriptor), String>;
     async fn exists(&self, sha256: &str) -> bool;
@@ -222,8 +220,9 @@ impl Storage for StorageManager {
         data: Vec<u8>,
         sha256: &str,
         mime_type: Option<String>,
+        extension: Option<String>,
     ) -> Result<BlobDescriptor, String> {
-        self.store_blob(data, sha256, mime_type).await
+        self.store_blob(data, sha256, mime_type, extension).await
     }
 
     async fn get(&self, sha256: &str) -> Result<(Vec<u8>, BlobDescriptor), String> {

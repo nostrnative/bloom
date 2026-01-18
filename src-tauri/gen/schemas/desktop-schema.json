@@ -5949,10 +5949,10 @@
           "markdownDescription": "This enables all file write related commands without any pre-configured accessible paths."
         },
         {
-          "description": "Default permissions for tauri-plugin-nostrnative plugin. Enables all commands by default.\n#### This default permission set includes:\n\n- `allow-generate-new-nsec`\n- `allow-parse-pubkey`\n- `allow-verify-nsec`\n- `allow-fetch-calendar-events`\n- `allow-publish-batch-calendar-events`\n- `allow-publish-calendar-event`\n- `allow-delete-calendar-event`\n- `allow-fetch-calendars`\n- `allow-publish-calendar`\n- `allow-delete-calendar`\n- `allow-fetch-profiles`\n- `allow-fetch-contact-list`\n- `allow-update-contact-list`\n- `allow-fetch-rsvps`\n- `allow-fetch-user-rsvps`\n- `allow-fetch-received-rsvps`\n- `allow-publish-rsvp`\n- `allow-send-direct-message`\n- `allow-fetch-bookmarks`\n- `allow-fetch-event-details`\n- `allow-save-bookmark`\n- `allow-remove-bookmark`\n- `allow-blossom-mirror`\n- `allow-blossom-upload`\n- `allow-blossom-upload-content`\n- `allow-blossom-get-blob`\n- `allow-blossom-delete`\n- `allow-blossom-list`\n- `allow-derive-pns-keys`\n- `allow-create-discovery-event`\n- `allow-decrypt-discovery-event`\n- `allow-publish-chat-message`\n- `allow-decrypt-pns-event`\n- `allow-fetch-pns-events`\n- `allow-delete-chat-messages`\n- `allow-fetch-discovery-events`\n- `allow-create-note`\n- `allow-update-note`\n- `allow-delete-note`\n- `allow-fetch-notes`\n- `allow-create-notebook`\n- `allow-fetch-notebooks`\n- `allow-add-note-to-notebook`\n- `allow-remove-note-from-notebook`\n- `allow-delete-notebook`\n- `allow-fetch-nfp-observations`\n- `allow-publish-nfp-observation`\n- `allow-update-nfp-observation`\n- `allow-fetch-nfp-cycles`\n- `allow-publish-nfp-cycle`\n- `allow-update-nfp-cycle`\n- `allow-fetch-nfp-settings`\n- `allow-publish-nfp-settings`\n- `allow-update-nfp-settings`\n- `allow-delete-nfp-data`",
+          "description": "Default permissions for tauri-plugin-nostrnative plugin. Enables all commands by default.\n#### This default permission set includes:\n\n- `allow-generate-new-nsec`\n- `allow-parse-pubkey`\n- `allow-verify-nsec`\n- `allow-fetch-calendar-events`\n- `allow-publish-batch-calendar-events`\n- `allow-publish-calendar-event`\n- `allow-delete-calendar-event`\n- `allow-fetch-calendars`\n- `allow-publish-calendar`\n- `allow-delete-calendar`\n- `allow-fetch-profiles`\n- `allow-fetch-contact-list`\n- `allow-update-contact-list`\n- `allow-fetch-rsvps`\n- `allow-fetch-user-rsvps`\n- `allow-fetch-received-rsvps`\n- `allow-publish-rsvp`\n- `allow-send-direct-message`\n- `allow-fetch-bookmarks`\n- `allow-fetch-event-details`\n- `allow-save-bookmark`\n- `allow-remove-bookmark`\n- `allow-blossom-mirror`\n- `allow-blossom-upload`\n- `allow-blossom-upload-content`\n- `allow-blossom-get-blob`\n- `allow-blossom-delete`\n- `allow-blossom-list`\n- `allow-derive-pns-keys`\n- `allow-create-discovery-event`\n- `allow-decrypt-discovery-event`\n- `allow-publish-chat-message`\n- `allow-decrypt-pns-event`\n- `allow-fetch-pns-events`\n- `allow-delete-chat-messages`\n- `allow-fetch-discovery-events`\n- `allow-create-note`\n- `allow-update-note`\n- `allow-delete-note`\n- `allow-fetch-notes`\n- `allow-create-notebook`\n- `allow-fetch-notebooks`\n- `allow-add-note-to-notebook`\n- `allow-remove-note-from-notebook`\n- `allow-delete-notebook`\n- `allow-fetch-nfp-observations`\n- `allow-publish-nfp-observation`\n- `allow-update-nfp-observation`\n- `allow-fetch-nfp-cycles`\n- `allow-publish-nfp-cycle`\n- `allow-update-nfp-cycle`\n- `allow-fetch-nfp-settings`\n- `allow-publish-nfp-settings`\n- `allow-update-nfp-settings`\n- `allow-delete-nfp-data`\n- `allow-publish-virtual-fs`\n- `allow-fetch-virtual-fs`\n- `allow-delete-virtual-fs`",
           "type": "string",
           "const": "nostrnative:default",
-          "markdownDescription": "Default permissions for tauri-plugin-nostrnative plugin. Enables all commands by default.\n#### This default permission set includes:\n\n- `allow-generate-new-nsec`\n- `allow-parse-pubkey`\n- `allow-verify-nsec`\n- `allow-fetch-calendar-events`\n- `allow-publish-batch-calendar-events`\n- `allow-publish-calendar-event`\n- `allow-delete-calendar-event`\n- `allow-fetch-calendars`\n- `allow-publish-calendar`\n- `allow-delete-calendar`\n- `allow-fetch-profiles`\n- `allow-fetch-contact-list`\n- `allow-update-contact-list`\n- `allow-fetch-rsvps`\n- `allow-fetch-user-rsvps`\n- `allow-fetch-received-rsvps`\n- `allow-publish-rsvp`\n- `allow-send-direct-message`\n- `allow-fetch-bookmarks`\n- `allow-fetch-event-details`\n- `allow-save-bookmark`\n- `allow-remove-bookmark`\n- `allow-blossom-mirror`\n- `allow-blossom-upload`\n- `allow-blossom-upload-content`\n- `allow-blossom-get-blob`\n- `allow-blossom-delete`\n- `allow-blossom-list`\n- `allow-derive-pns-keys`\n- `allow-create-discovery-event`\n- `allow-decrypt-discovery-event`\n- `allow-publish-chat-message`\n- `allow-decrypt-pns-event`\n- `allow-fetch-pns-events`\n- `allow-delete-chat-messages`\n- `allow-fetch-discovery-events`\n- `allow-create-note`\n- `allow-update-note`\n- `allow-delete-note`\n- `allow-fetch-notes`\n- `allow-create-notebook`\n- `allow-fetch-notebooks`\n- `allow-add-note-to-notebook`\n- `allow-remove-note-from-notebook`\n- `allow-delete-notebook`\n- `allow-fetch-nfp-observations`\n- `allow-publish-nfp-observation`\n- `allow-update-nfp-observation`\n- `allow-fetch-nfp-cycles`\n- `allow-publish-nfp-cycle`\n- `allow-update-nfp-cycle`\n- `allow-fetch-nfp-settings`\n- `allow-publish-nfp-settings`\n- `allow-update-nfp-settings`\n- `allow-delete-nfp-data`"
+          "markdownDescription": "Default permissions for tauri-plugin-nostrnative plugin. Enables all commands by default.\n#### This default permission set includes:\n\n- `allow-generate-new-nsec`\n- `allow-parse-pubkey`\n- `allow-verify-nsec`\n- `allow-fetch-calendar-events`\n- `allow-publish-batch-calendar-events`\n- `allow-publish-calendar-event`\n- `allow-delete-calendar-event`\n- `allow-fetch-calendars`\n- `allow-publish-calendar`\n- `allow-delete-calendar`\n- `allow-fetch-profiles`\n- `allow-fetch-contact-list`\n- `allow-update-contact-list`\n- `allow-fetch-rsvps`\n- `allow-fetch-user-rsvps`\n- `allow-fetch-received-rsvps`\n- `allow-publish-rsvp`\n- `allow-send-direct-message`\n- `allow-fetch-bookmarks`\n- `allow-fetch-event-details`\n- `allow-save-bookmark`\n- `allow-remove-bookmark`\n- `allow-blossom-mirror`\n- `allow-blossom-upload`\n- `allow-blossom-upload-content`\n- `allow-blossom-get-blob`\n- `allow-blossom-delete`\n- `allow-blossom-list`\n- `allow-derive-pns-keys`\n- `allow-create-discovery-event`\n- `allow-decrypt-discovery-event`\n- `allow-publish-chat-message`\n- `allow-decrypt-pns-event`\n- `allow-fetch-pns-events`\n- `allow-delete-chat-messages`\n- `allow-fetch-discovery-events`\n- `allow-create-note`\n- `allow-update-note`\n- `allow-delete-note`\n- `allow-fetch-notes`\n- `allow-create-notebook`\n- `allow-fetch-notebooks`\n- `allow-add-note-to-notebook`\n- `allow-remove-note-from-notebook`\n- `allow-delete-notebook`\n- `allow-fetch-nfp-observations`\n- `allow-publish-nfp-observation`\n- `allow-update-nfp-observation`\n- `allow-fetch-nfp-cycles`\n- `allow-publish-nfp-cycle`\n- `allow-update-nfp-cycle`\n- `allow-fetch-nfp-settings`\n- `allow-publish-nfp-settings`\n- `allow-update-nfp-settings`\n- `allow-delete-nfp-data`\n- `allow-publish-virtual-fs`\n- `allow-fetch-virtual-fs`\n- `allow-delete-virtual-fs`"
         },
         {
           "description": "Enables the add_note_to_notebook command without any pre-configured scope.",
@@ -6063,6 +6063,12 @@
           "markdownDescription": "Enables the delete_notebook command without any pre-configured scope."
         },
         {
+          "description": "Enables the delete_virtual_fs command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-delete-virtual-fs",
+          "markdownDescription": "Enables the delete_virtual_fs command without any pre-configured scope."
+        },
+        {
           "description": "Enables the derive_pns_keys command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:allow-derive-pns-keys",
@@ -6165,6 +6171,12 @@
           "markdownDescription": "Enables the fetch_user_rsvps command without any pre-configured scope."
         },
         {
+          "description": "Enables the fetch_virtual_fs command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-virtual-fs",
+          "markdownDescription": "Enables the fetch_virtual_fs command without any pre-configured scope."
+        },
+        {
           "description": "Enables the generate_new_nsec command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:allow-generate-new-nsec",
@@ -6223,6 +6235,12 @@
           "type": "string",
           "const": "nostrnative:allow-publish-rsvp",
           "markdownDescription": "Enables the publish_rsvp command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_virtual_fs command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-virtual-fs",
+          "markdownDescription": "Enables the publish_virtual_fs command without any pre-configured scope."
         },
         {
           "description": "Enables the remove_bookmark command without any pre-configured scope.",
@@ -6381,6 +6399,12 @@
           "markdownDescription": "Denies the delete_notebook command without any pre-configured scope."
         },
         {
+          "description": "Denies the delete_virtual_fs command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-delete-virtual-fs",
+          "markdownDescription": "Denies the delete_virtual_fs command without any pre-configured scope."
+        },
+        {
           "description": "Denies the derive_pns_keys command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:deny-derive-pns-keys",
@@ -6483,6 +6507,12 @@
           "markdownDescription": "Denies the fetch_user_rsvps command without any pre-configured scope."
         },
         {
+          "description": "Denies the fetch_virtual_fs command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-virtual-fs",
+          "markdownDescription": "Denies the fetch_virtual_fs command without any pre-configured scope."
+        },
+        {
           "description": "Denies the generate_new_nsec command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:deny-generate-new-nsec",
@@ -6541,6 +6571,12 @@
           "type": "string",
           "const": "nostrnative:deny-publish-rsvp",
           "markdownDescription": "Denies the publish_rsvp command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_virtual_fs command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-virtual-fs",
+          "markdownDescription": "Denies the publish_virtual_fs command without any pre-configured scope."
         },
         {
           "description": "Denies the remove_bookmark command without any pre-configured scope.",
