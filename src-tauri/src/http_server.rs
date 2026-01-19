@@ -10,6 +10,7 @@ use axum::{
     Router,
 };
 use bytes::Bytes;
+use nostr_sdk::prelude::*;
 use serde::Deserialize;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -46,12 +47,27 @@ pub fn set_active_port(port: u16) {
     ACTIVE_PORT.store(port, Ordering::SeqCst);
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct ProxyHints {
-    #[serde(default)]
-    pub xs: Vec<String>,
-    #[serde(rename = "as", default)]
-    pub as_hints: Vec<String>,
+    pub xs: Option<String>,
+    #[serde(rename = "as")]
+    pub as_hints: Option<String>,
+}
+
+impl ProxyHints {
+    fn get_xs(&self) -> Vec<String> {
+        self.xs
+            .as_ref()
+            .map(|s| s.split(',').map(|s| s.trim().to_string()).collect())
+            .unwrap_or_default()
+    }
+
+    fn get_as(&self) -> Vec<String> {
+        self.as_hints
+            .as_ref()
+            .map(|s| s.split(',').map(|s| s.trim().to_string()).collect())
+            .unwrap_or_default()
+    }
 }
 
 impl FromRef<AppState> for Arc<StorageManager> {
@@ -154,6 +170,47 @@ fn strip_extension(sha256_ext: &str) -> &str {
     }
 }
 
+fn parse_range(range_header: &str, total_size: usize) -> Option<(usize, usize)> {
+    if !range_header.starts_with("bytes=") {
+        return None;
+    }
+    let range = &range_header[6..];
+    let parts: Vec<&str> = range.split('-').collect();
+    if parts.len() != 2 {
+        return None;
+    }
+    let start_str = parts[0].trim();
+    let end_str = parts[1].trim();
+
+    if start_str.is_empty() {
+        // Suffix range: -500 means last 500 bytes
+        let suffix = end_str.parse::<usize>().ok()?;
+        if suffix == 0 {
+            return None;
+        }
+        let start = if suffix >= total_size {
+            0
+        } else {
+            total_size - suffix
+        };
+        Some((start, total_size - 1))
+    } else if end_str.is_empty() {
+        // Open range: 100- means from 100 to end
+        let start = start_str.parse::<usize>().ok()?;
+        if start >= total_size {
+            return None;
+        }
+        Some((start, total_size - 1))
+    } else {
+        let start = start_str.parse::<usize>().ok()?;
+        let end = end_str.parse::<usize>().ok()?;
+        if start >= total_size || start > end {
+            return None;
+        }
+        Some((start, end.min(total_size - 1)))
+    }
+}
+
 async fn get_blob(
     State(state): State<AppState>,
     axum::extract::Path(sha256_ext): axum::extract::Path<String>,
@@ -165,49 +222,49 @@ async fn get_blob(
 
     if !state.storage.exists(sha256).await {
         // If not found locally, try proxying if hints are provided
-        if !hints.xs.is_empty() || !hints.as_hints.is_empty() {
-            if let Ok(response) =
-                proxy_blob(&state.storage, sha256, &hints, extension.as_deref()).await
-            {
-                return Ok(response);
-            }
+        let xs = hints.get_xs();
+        let as_hints = hints.get_as();
+        if !xs.is_empty() {
+            let _ =
+                proxy_blob_and_cache(&state.storage, sha256, &xs, &as_hints, extension.as_deref())
+                    .await;
         }
-        return Err(error_response(StatusCode::NOT_FOUND, "Blob not found"));
     }
 
     match state.storage.get(sha256).await {
         Ok((data, descriptor)) => {
-            println!("{:?}", descriptor);
-            let mut status = StatusCode::OK;
+            let total_size = data.len();
+            if total_size == 0 {
+                return Ok(Response::builder()
+                    .status(StatusCode::OK)
+                    .header(header::CONTENT_TYPE, descriptor.mime_type)
+                    .header(header::CONTENT_LENGTH, 0)
+                    .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                    .body(Body::empty())
+                    .unwrap());
+            }
+
             let mut range_start = 0;
-            let mut range_end = data.len();
+            let mut range_end = total_size - 1;
+            let mut status = StatusCode::OK;
 
-            if let Some(range_header) = headers.get(header::RANGE) {
-                if let Ok(range_str) = range_header.to_str() {
-                    if range_str.starts_with("bytes=") {
-                        let parts: Vec<&str> = range_str[6..].split('-').collect();
-                        if parts.len() == 2 {
-                            let start = parts[0].parse::<usize>().unwrap_or(0);
-                            let end = parts[1].parse::<usize>().unwrap_or(data.len() - 1);
-
-                            if start < data.len() {
-                                range_start = start;
-                                range_end = (end + 1).min(data.len());
-                                status = StatusCode::PARTIAL_CONTENT;
-                            }
-                        }
-                    }
+            if let Some(range_header) = headers.get(header::RANGE).and_then(|h| h.to_str().ok()) {
+                if let Some((s, e)) = parse_range(range_header, total_size) {
+                    range_start = s;
+                    range_end = e;
+                    status = StatusCode::PARTIAL_CONTENT;
                 }
             }
 
-            let body_data = data[range_start..range_end].to_vec();
-            let content_range = format!("bytes {}-{}/{}", range_start, range_end - 1, data.len());
+            let body_data = data[range_start..=range_end].to_vec();
+            let content_range = format!("bytes {}-{}/{}", range_start, range_end, total_size);
 
             let mut builder = Response::builder()
                 .status(status)
                 .header(header::CONTENT_TYPE, descriptor.mime_type)
                 .header(header::CONTENT_LENGTH, body_data.len())
-                .header(header::ACCEPT_RANGES, "bytes");
+                .header(header::ACCEPT_RANGES, "bytes")
+                .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 
             if status == StatusCode::PARTIAL_CONTENT {
                 builder = builder.header(header::CONTENT_RANGE, content_range);
@@ -215,7 +272,7 @@ async fn get_blob(
 
             Ok(builder.body(Body::from(body_data)).unwrap())
         }
-        Err(e) => Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e)),
+        Err(e) => Err(error_response(StatusCode::NOT_FOUND, &e)),
     }
 }
 
@@ -228,9 +285,10 @@ async fn head_blob(
     let sha256 = strip_extension(&sha256_ext);
 
     if !state.storage.exists(sha256).await {
-        // For HEAD, we could also proxy but it might be overkill just to check existence.
-        if !hints.xs.is_empty() || !hints.as_hints.is_empty() {
-            if let Ok(response) = proxy_blob_head(&state.storage, sha256, &hints).await {
+        let xs = hints.get_xs();
+        let as_hints = hints.get_as();
+        if !xs.is_empty() {
+            if let Ok(response) = proxy_blob_head(&state.storage, sha256, &xs, &as_hints).await {
                 return Ok(response);
             }
         }
@@ -239,43 +297,39 @@ async fn head_blob(
 
     match state.storage.get_descriptor(sha256).await {
         Ok(descriptor) => {
-            let mut status = StatusCode::OK;
+            let total_size = descriptor.size as usize;
+            if total_size == 0 {
+                return Ok(Response::builder()
+                    .status(StatusCode::OK)
+                    .header(header::CONTENT_TYPE, descriptor.mime_type)
+                    .header(header::CONTENT_LENGTH, 0)
+                    .header(header::ACCEPT_RANGES, "bytes")
+                    .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                    .body(Body::empty())
+                    .unwrap());
+            }
+
             let mut range_start = 0;
-            let mut range_end = descriptor.size as usize;
+            let mut range_end = total_size - 1;
+            let mut status = StatusCode::OK;
 
-            if let Some(range_header) = headers.get(header::RANGE) {
-                if let Ok(range_str) = range_header.to_str() {
-                    if range_str.starts_with("bytes=") {
-                        let parts: Vec<&str> = range_str[6..].split('-').collect();
-                        if parts.len() == 2 {
-                            let start = parts[0].parse::<usize>().unwrap_or(0);
-                            let end = parts[1]
-                                .parse::<usize>()
-                                .unwrap_or(descriptor.size as usize - 1);
-
-                            if start < descriptor.size as usize {
-                                range_start = start;
-                                range_end = (end + 1).min(descriptor.size as usize);
-                                status = StatusCode::PARTIAL_CONTENT;
-                            }
-                        }
-                    }
+            if let Some(range_header) = headers.get(header::RANGE).and_then(|h| h.to_str().ok()) {
+                if let Some((s, e)) = parse_range(range_header, total_size) {
+                    range_start = s;
+                    range_end = e;
+                    status = StatusCode::PARTIAL_CONTENT;
                 }
             }
 
-            let content_length = range_end - range_start;
-            let content_range = format!(
-                "bytes {}-{}/{}",
-                range_start,
-                range_end - 1,
-                descriptor.size
-            );
+            let content_length = range_end - range_start + 1;
+            let content_range = format!("bytes {}-{}/{}", range_start, range_end, total_size);
 
             let mut builder = Response::builder()
                 .status(status)
                 .header(header::CONTENT_TYPE, descriptor.mime_type)
                 .header(header::CONTENT_LENGTH, content_length)
-                .header(header::ACCEPT_RANGES, "bytes");
+                .header(header::ACCEPT_RANGES, "bytes")
+                .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 
             if status == StatusCode::PARTIAL_CONTENT {
                 builder = builder.header(header::CONTENT_RANGE, content_range);
@@ -306,7 +360,6 @@ async fn upload_blob(
                 .map(|s| s.to_string())
         });
 
-    println!("{:?}", headers);
     let content_type = headers
         .get(header::CONTENT_TYPE)
         .and_then(|h| h.to_str().ok())
@@ -438,7 +491,6 @@ async fn mirror_blob(
     State(state): State<AppState>,
     axum::extract::Json(req): axum::extract::Json<MirrorRequest>,
 ) -> Result<Response, Response> {
-    println!("{:?}", req);
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()
@@ -524,25 +576,25 @@ fn error_response(status: StatusCode, message: &str) -> Response {
         .unwrap()
 }
 
-async fn proxy_blob(
+async fn proxy_blob_and_cache(
     storage: &StorageManager,
     sha256: &str,
-    hints: &ProxyHints,
+    xs: &[String],
+    as_hints: &[String],
     extension: Option<&str>,
-) -> Result<Response, String> {
+) -> Result<(), String> {
     let client = reqwest::Client::new();
 
     // 1. Try xs hints
-    for server in &hints.xs {
-        let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
+    for server in xs {
+        let url = format!("{}", server.trim_end_matches('/'));
         if let Ok(resp) = client.get(&url).send().await {
             if resp.status().is_success() {
                 let content_type = resp
                     .headers()
                     .get(header::CONTENT_TYPE)
                     .and_then(|v| v.to_str().ok())
-                    .unwrap_or("application/octet-stream")
-                    .to_string();
+                    .map(|v| v.to_string());
 
                 if let Ok(bytes) = resp.bytes().await {
                     // Validate hash
@@ -553,61 +605,11 @@ async fn proxy_blob(
                             .store(
                                 bytes.to_vec(),
                                 sha256,
-                                Some(content_type.clone()),
+                                content_type,
                                 extension.map(|s| s.to_string()),
                             )
                             .await;
-
-                        let response = Response::builder()
-                            .status(StatusCode::OK)
-                            .header(header::CONTENT_TYPE, content_type)
-                            .header(header::CONTENT_LENGTH, bytes.len())
-                            .header(header::ACCEPT_RANGES, "bytes")
-                            .body(Body::from(bytes))
-                            .unwrap();
-                        return Ok(response);
-                    }
-                }
-            }
-        }
-    }
-
-    // 2. Try as hints (author pubkeys)
-    for pubkey in &hints.as_hints {
-        if let Ok(servers) = fetch_author_servers(pubkey).await {
-            for server in servers {
-                let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
-                if let Ok(resp) = client.get(&url).send().await {
-                    if resp.status().is_success() {
-                        let content_type = resp
-                            .headers()
-                            .get(header::CONTENT_TYPE)
-                            .and_then(|v| v.to_str().ok())
-                            .unwrap_or("application/octet-stream")
-                            .to_string();
-
-                        if let Ok(bytes) = resp.bytes().await {
-                            let received_sha256 = StorageManager::compute_sha256(&bytes);
-                            if received_sha256 == sha256 {
-                                let _ = storage
-                                    .store(
-                                        bytes.to_vec(),
-                                        sha256,
-                                        Some(content_type.clone()),
-                                        extension.map(|s| s.to_string()),
-                                    )
-                                    .await;
-
-                                let response = Response::builder()
-                                    .status(StatusCode::OK)
-                                    .header(header::CONTENT_TYPE, content_type)
-                                    .header(header::CONTENT_LENGTH, bytes.len())
-                                    .header(header::ACCEPT_RANGES, "bytes")
-                                    .body(Body::from(bytes))
-                                    .unwrap();
-                                return Ok(response);
-                            }
-                        }
+                        return Ok(());
                     }
                 }
             }
@@ -620,11 +622,12 @@ async fn proxy_blob(
 async fn proxy_blob_head(
     _storage: &StorageManager,
     sha256: &str,
-    hints: &ProxyHints,
+    xs: &[String],
+    as_hints: &[String],
 ) -> Result<Response, String> {
     let client = reqwest::Client::new();
 
-    for server in &hints.xs {
+    for server in xs {
         let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
         if let Ok(resp) = client.head(&url).send().await {
             if resp.status().is_success() {
@@ -646,6 +649,7 @@ async fn proxy_blob_head(
                     .header(header::CONTENT_TYPE, content_type)
                     .header(header::CONTENT_LENGTH, content_length)
                     .header(header::ACCEPT_RANGES, "bytes")
+                    .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
                     .body(Body::empty())
                     .unwrap();
                 return Ok(response);
@@ -653,10 +657,86 @@ async fn proxy_blob_head(
         }
     }
 
+    // Also try author hints for HEAD
+    for pubkey in as_hints {
+        if let Ok(servers) = fetch_author_servers(pubkey).await {
+            for server in servers {
+                let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
+                if let Ok(resp) = client.head(&url).send().await {
+                    if resp.status().is_success() {
+                        let content_type = resp
+                            .headers()
+                            .get(header::CONTENT_TYPE)
+                            .and_then(|v| v.to_str().ok())
+                            .unwrap_or("application/octet-stream")
+                            .to_string();
+                        let content_length = resp
+                            .headers()
+                            .get(header::CONTENT_LENGTH)
+                            .and_then(|v| v.to_str().ok())
+                            .and_then(|v| v.parse::<u64>().ok())
+                            .unwrap_or(0);
+
+                        let response = Response::builder()
+                            .status(StatusCode::OK)
+                            .header(header::CONTENT_TYPE, content_type)
+                            .header(header::CONTENT_LENGTH, content_length)
+                            .header(header::ACCEPT_RANGES, "bytes")
+                            .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                            .body(Body::empty())
+                            .unwrap();
+                        return Ok(response);
+                    }
+                }
+            }
+        }
+    }
+
     Err("Not found in hints".to_string())
 }
 
-async fn fetch_author_servers(_pubkey: &str) -> Result<Vec<String>, String> {
-    // Stub for now
-    Ok(vec![])
+async fn fetch_author_servers(pubkey_str: &str) -> Result<Vec<String>, String> {
+    let pubkey = PublicKey::from_hex(pubkey_str).map_err(|e| e.to_string())?;
+
+    let client = Client::default();
+    client
+        .add_relay("wss://relay.damus.io")
+        .await
+        .map_err(|e| e.to_string())?;
+    client
+        .add_relay("wss://nos.lol")
+        .await
+        .map_err(|e| e.to_string())?;
+    client
+        .add_relay("wss://relay.snort.social")
+        .await
+        .map_err(|e| e.to_string())?;
+    client.connect().await;
+
+    let filter = Filter::new()
+        .author(pubkey)
+        .kind(Kind::from(10063))
+        .limit(1);
+
+    let events = client
+        .fetch_events(filter, Duration::from_secs(5))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    client.disconnect().await;
+
+    if let Some(event) = events.first() {
+        let mut servers = Vec::new();
+        for tag in event.tags.iter() {
+            let tag_vec = tag.clone().to_vec();
+            if tag_vec.get(0) == Some(&"server".to_string()) {
+                if let Some(url) = tag_vec.get(1) {
+                    servers.push(url.clone());
+                }
+            }
+        }
+        Ok(servers)
+    } else {
+        Ok(vec![])
+    }
 }

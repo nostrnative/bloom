@@ -54,10 +54,8 @@ impl StorageManager {
         mime_type: Option<String>,
         extension: Option<String>,
     ) -> Result<BlobDescriptor, String> {
-        println!("{:?}", extension);
         let blob_path = self.get_blob_path(sha256);
         let descriptor_path = self.get_descriptor_path(sha256).await;
-        println!("{:?}", mime_type);
 
         let mime_type = mime_type.unwrap_or_else(|| "application/octet-stream".to_string());
         let size = data.len() as u64;
