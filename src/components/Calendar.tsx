@@ -183,7 +183,7 @@ export default function Calendar() {
               alt='Logo'
               className='h-8 w-8 rounded-xl shadow-sm'
             />
-            <h1 className='text-lg font-bold tracking-tight'>Yawmiya</h1>
+            <h1 className='text-lg font-bold tracking-tight'>Blossom</h1>
           </div>
           <div className='flex-1 overflow-y-auto'>
             <CalendarSwitcher />

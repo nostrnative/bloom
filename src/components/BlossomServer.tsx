@@ -163,11 +163,14 @@ export default function BlossomServer() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Blossom Server</h1>
-          <p className="text-muted-foreground">
-            Decentralized media storage for the Nostr ecosystem
-          </p>
+        <div className="flex items-center gap-4">
+          <img src="/logo.png" alt="Blossom Logo" className="h-12 w-12 rounded-2xl shadow-sm" />
+          <div>
+            <h1 className="text-3xl font-bold">Blossom Server</h1>
+            <p className="text-muted-foreground">
+              Decentralized media storage for the Nostr ecosystem
+            </p>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant={serverRunning ? "default" : "destructive"}>

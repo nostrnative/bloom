@@ -5,3 +5,4 @@ dist
 *.jks
 *.properties
 releases
+src-tauri/.DS_Store

@@ -68,6 +68,9 @@ function AppContent() {
       <div className="fixed top-0 right-0 left-0 z-50 h-[env(safe-area-inset-top)] bg-zinc-950" />
       <div className="flex h-full flex-col md:flex-row">
         <nav className="flex h-16 w-full items-center justify-around bg-zinc-100 py-2 dark:bg-zinc-900 md:h-full md:w-16 md:flex-col md:justify-start md:space-y-4 md:py-4">
+          <div className="hidden md:flex items-center justify-center pb-2">
+            <img src="/logo.png" alt="Blossom Logo" className="h-10 w-10 rounded-xl" />
+          </div>
           <Button
             variant={currentPage === "server" ? "default" : "ghost"}
             size="icon"
