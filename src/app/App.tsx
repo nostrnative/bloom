@@ -66,24 +66,24 @@ function AppContent() {
   return (
     <main className="h-screen w-screen overflow-hidden bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       <div className="fixed top-0 right-0 left-0 z-50 h-[env(safe-area-inset-top)] bg-zinc-950" />
-      <div className="flex h-full">
-        <nav className="w-16 bg-zinc-100 dark:bg-zinc-900 flex flex-col items-center py-4 space-y-4">
+      <div className="flex h-full flex-col md:flex-row">
+        <nav className="flex h-16 w-full items-center justify-around bg-zinc-100 py-2 dark:bg-zinc-900 md:h-full md:w-16 md:flex-col md:justify-start md:space-y-4 md:py-4">
           <Button
             variant={currentPage === "server" ? "default" : "ghost"}
             size="icon"
             onClick={() => setCurrentPage("server")}
           >
-            <Server className="w-5 h-5" />
+            <Server className="h-5 w-5" />
           </Button>
           <Button
             variant={currentPage === "settings" ? "default" : "ghost"}
             size="icon"
             onClick={() => setCurrentPage("settings")}
           >
-            <SettingsIcon className="w-5 h-5" />
+            <SettingsIcon className="h-5 w-5" />
           </Button>
         </nav>
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-4 md:p-6">
           {currentPage === "server" ? (
             <BlossomServer />
           ) : (
