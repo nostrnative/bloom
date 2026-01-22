@@ -3,21 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import { nostrApi, UserProfile } from "@/lib/api";
-import { useCalendars } from "@/hooks/useCalendars";
 import {
   Trash2,
   Plus,
-  Bell,
-  BellOff,
   RefreshCw,
-  User,
-  ExternalLink,
-  Calendar as CalendarIcon,
-  Database,
-  Cloud,
-  CloudOff,
-  Shield,
-  ShieldCheck,
 } from "lucide-react";
 
 export default function Settings() {
@@ -28,51 +17,25 @@ export default function Settings() {
     relays,
     setRelays,
     logout,
-    notificationsEnabled,
-    setNotificationsEnabled,
-    reminderInterval,
-    setReminderInterval,
-    selectedCalendarId,
-    setSelectedCalendarId,
     theme,
     setTheme,
     localRelay,
-    setLocalRelay,
     syncEnabled,
-    setSyncEnabled,
     syncIntervalMinutes,
-    setSyncIntervalMinutes,
     onlyContacts,
-    setOnlyContacts,
-    hideDeclinedEvents,
-    setHideDeclinedEvents,
-    useDifferentTimestamp,
-    setUseDifferentTimestamp,
     lastSyncTimestamp,
     getAllRelays,
     interestedContactPubkeys,
-    toggleInterestedContactPubkey,
     preferredPort,
     setPreferredPort,
     blossomPort,
   } = useAppStore();
-  const { calendars, createCalendar, deleteCalendar } = useCalendars();
   const [inputNsec, setInputNsec] = useState(nsec || "");
   const [newRelay, setNewRelay] = useState("");
-  const [inputLocalRelay, setInputLocalRelay] = useState(localRelay || "");
   const [inputPort, setInputPort] = useState(preferredPort?.toString() || "");
-  const [newCalName, setNewCalName] = useState("");
-  const [newCalDesc, setNewCalDesc] = useState("");
   const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState("");
-  const [contactSearch, setContactSearch] = useState("");
   const queryClient = useQueryClient();
-
-  const handleLocalRelayChange = (value: string) => {
-    setInputLocalRelay(value);
-    setLocalRelay(value || null);
-  };
 
   const handlePortChange = (value: string) => {
     setInputPort(value);
@@ -108,7 +71,7 @@ export default function Settings() {
   const contacts = contactsQuery.data || [];
 
   // React Query for Profiles
-  const profilesQuery = useQuery({
+  useQuery({
     queryKey: ["profiles", contacts.map((c) => c.pubkey)],
     queryFn: async () => {
       const pks = contacts.map((c) => c.pubkey);
@@ -122,8 +85,6 @@ export default function Settings() {
     },
     enabled: contacts.length > 0,
   });
-
-  const profiles = profilesQuery.data || {};
 
   const verifyAndConnect = async (keyToVerify: string) => {
     setLoading(true);
@@ -162,35 +123,6 @@ export default function Settings() {
     setRelays(relays.filter((r) => r !== relay));
   };
 
-  const handleCreateCalendar = async () => {
-    if (!newCalName.trim()) return;
-    try {
-      await createCalendar({
-        name: newCalName,
-        description: newCalDesc,
-        identifier: crypto.randomUUID(),
-      });
-      setNewCalName("");
-      setNewCalDesc("");
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleManualSync = async () => {
-    setSyncing(true);
-    setError("");
-    try {
-      await updateSync();
-      await nostrApi.triggerSync();
-      queryClient.invalidateQueries();
-    } catch (e: any) {
-      setError("Sync failed: " + e.toString());
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const updateSync = async () => {
     await nostrApi.updateSyncSettings({
       local_relay: localRelay,
@@ -203,35 +135,6 @@ export default function Settings() {
       last_sync_timestamp: lastSyncTimestamp,
       interested_contact_pubkeys: interestedContactPubkeys,
     });
-  };
-
-  const handleDeleteCalendar = async (identifier: string) => {
-    if (!confirm("Delete this calendar?")) return;
-    try {
-      await deleteCalendar(identifier);
-      if (selectedCalendarId === identifier) {
-        setSelectedCalendarId(null);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const requestNotificationPermission = async () => {
-    const { isPermissionGranted, requestPermission, sendNotification } =
-      await import("@tauri-apps/plugin-notification");
-    let permission = await isPermissionGranted();
-    if (!permission) {
-      const permissionStatus = await requestPermission();
-      permission = permissionStatus === "granted";
-    }
-    setNotificationsEnabled(permission);
-    if (permission) {
-      sendNotification({
-        title: "Notifications Enabled",
-        body: "You will be notified of important updates.",
-      });
-    }
   };
 
   if (nsec) {

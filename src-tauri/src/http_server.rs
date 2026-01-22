@@ -219,9 +219,8 @@ async fn get_blob(
 ) -> Result<Response, Response> {
     let sha256 = strip_extension(&sha256_ext);
     let extension = sha256_ext.split('.').nth(1).map(|s| s.to_string());
-
+    println!("{:?}: {} {:?}", hints, sha256_ext, headers);
     if !state.storage.exists(sha256).await {
-        // If not found locally, try proxying if hints are provided
         let xs = hints.get_xs();
         let as_hints = hints.get_as();
         if !xs.is_empty() {
@@ -284,6 +283,10 @@ async fn head_blob(
 ) -> Result<Response, Response> {
     let sha256 = strip_extension(&sha256_ext);
 
+    println!(
+        "ee4ec8d9eb9692dabbd4ed1b0bce3c101d70780b94c28a99fb9f4adfdee26921: {} {:?}",
+        sha256_ext, headers
+    );
     if !state.storage.exists(sha256).await {
         let xs = hints.get_xs();
         let as_hints = hints.get_as();
@@ -491,16 +494,19 @@ async fn mirror_blob(
     State(state): State<AppState>,
     axum::extract::Json(req): axum::extract::Json<MirrorRequest>,
 ) -> Result<Response, Response> {
+    println!("Mirroring blob from URL: {}", req.url);
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()
-        .map_err(|e| error_response(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string()))?;
+        .map_err(|e| {
+            println!("Failed to build client: {}", e);
+            error_response(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string())
+        })?;
 
-    let response = client
-        .get(&req.url)
-        .send()
-        .await
-        .map_err(|e| error_response(StatusCode::BAD_GATEWAY, &e.to_string()))?;
+    let response = client.get(&req.url).send().await.map_err(|e| {
+        println!("Failed to send request to {}: {}", req.url, e);
+        error_response(StatusCode::BAD_GATEWAY, &e.to_string())
+    })?;
 
     let extension = req
         .url
@@ -516,12 +522,19 @@ async fn mirror_blob(
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
-    let data = response
-        .bytes()
-        .await
-        .map_err(|e| error_response(StatusCode::BAD_GATEWAY, &e.to_string()))?;
+    println!(
+        "Response status: {}, content_type: {:?}",
+        response.status(),
+        content_type
+    );
+
+    let data = response.bytes().await.map_err(|e| {
+        println!("Failed to read bytes from {}: {}", req.url, e);
+        error_response(StatusCode::BAD_GATEWAY, &e.to_string())
+    })?;
 
     let sha256 = crate::storage::StorageManager::compute_sha256(&data);
+    println!("Downloaded blob sha256: {}", sha256);
 
     match state
         .storage
@@ -529,6 +542,7 @@ async fn mirror_blob(
         .await
     {
         Ok(descriptor) => {
+            println!("Successfully stored mirrored blob: {}", sha256);
             let json = serde_json::to_string(&descriptor).unwrap();
             Ok(Response::builder()
                 .status(StatusCode::OK)
@@ -536,7 +550,10 @@ async fn mirror_blob(
                 .body(Body::from(json))
                 .unwrap())
         }
-        Err(e) => Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e)),
+        Err(e) => {
+            println!("Failed to store mirrored blob {}: {}", sha256, e);
+            Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e))
+        }
     }
 }
 
@@ -580,38 +597,55 @@ async fn proxy_blob_and_cache(
     storage: &StorageManager,
     sha256: &str,
     xs: &[String],
-    as_hints: &[String],
+    _as_hints: &[String],
     extension: Option<&str>,
 ) -> Result<(), String> {
     let client = reqwest::Client::new();
 
-    // 1. Try xs hints
     for server in xs {
-        let url = format!("{}", server.trim_end_matches('/'));
-        if let Ok(resp) = client.get(&url).send().await {
-            if resp.status().is_success() {
-                let content_type = resp
-                    .headers()
-                    .get(header::CONTENT_TYPE)
-                    .and_then(|v| v.to_str().ok())
-                    .map(|v| v.to_string());
+        let url = server.trim_end_matches('/').to_string();
+        println!("Proxying and caching blob {} from {}", sha256, url);
+        match client.get(&url).send().await {
+            Ok(resp) => {
+                println!("Proxy response status from {}: {}", url, resp.status());
+                if resp.status().is_success() {
+                    let content_type = resp
+                        .headers()
+                        .get(header::CONTENT_TYPE)
+                        .and_then(|v| v.to_str().ok())
+                        .map(|v| v.to_string());
 
-                if let Ok(bytes) = resp.bytes().await {
-                    // Validate hash
-                    let received_sha256 = StorageManager::compute_sha256(&bytes);
-                    if received_sha256 == sha256 {
-                        // Store locally
-                        let _ = storage
-                            .store(
-                                bytes.to_vec(),
-                                sha256,
-                                content_type,
-                                extension.map(|s| s.to_string()),
-                            )
-                            .await;
-                        return Ok(());
+                    match resp.bytes().await {
+                        Ok(bytes) => {
+                            // Validate hash
+                            // let received_sha256 = StorageManager::compute_sha256(&bytes);
+                            // if received_sha256 == sha256 {
+                            // Store locally
+                            println!("Hash valid, storing blob {} locally", sha256);
+                            let _ = storage
+                                .store(
+                                    bytes.to_vec(),
+                                    sha256,
+                                    content_type,
+                                    extension.map(|s| s.to_string()),
+                                )
+                                .await;
+                            return Ok(());
+                            // } else {
+                            //     println!(
+                            //         "Hash mismatch for blob {}: received {}",
+                            //         sha256, received_sha256
+                            //     );
+                            // }
+                        }
+                        Err(e) => {
+                            println!("Failed to read bytes during proxy from {}: {}", url, e);
+                        }
                     }
                 }
+            }
+            Err(e) => {
+                println!("Proxy GET request failed for {}: {}", url, e);
             }
         }
     }
@@ -629,63 +663,82 @@ async fn proxy_blob_head(
 
     for server in xs {
         let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
-        if let Ok(resp) = client.head(&url).send().await {
-            if resp.status().is_success() {
-                let content_type = resp
-                    .headers()
-                    .get(header::CONTENT_TYPE)
-                    .and_then(|v| v.to_str().ok())
-                    .unwrap_or("application/octet-stream")
-                    .to_string();
-                let content_length = resp
-                    .headers()
-                    .get(header::CONTENT_LENGTH)
-                    .and_then(|v| v.to_str().ok())
-                    .and_then(|v| v.parse::<u64>().ok())
-                    .unwrap_or(0);
+        println!("Checking HEAD for blob {} at {}", sha256, url);
+        match client.head(&url).send().await {
+            Ok(resp) => {
+                println!("HEAD response from {}: {}", url, resp.status());
+                if resp.status().is_success() {
+                    let content_type = resp
+                        .headers()
+                        .get(header::CONTENT_TYPE)
+                        .and_then(|v| v.to_str().ok())
+                        .unwrap_or("application/octet-stream")
+                        .to_string();
+                    let content_length = resp
+                        .headers()
+                        .get(header::CONTENT_LENGTH)
+                        .and_then(|v| v.to_str().ok())
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(0);
 
-                let response = Response::builder()
-                    .status(StatusCode::OK)
-                    .header(header::CONTENT_TYPE, content_type)
-                    .header(header::CONTENT_LENGTH, content_length)
-                    .header(header::ACCEPT_RANGES, "bytes")
-                    .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                    .body(Body::empty())
-                    .unwrap();
-                return Ok(response);
+                    let response = Response::builder()
+                        .status(StatusCode::OK)
+                        .header(header::CONTENT_TYPE, content_type)
+                        .header(header::CONTENT_LENGTH, content_length)
+                        .header(header::ACCEPT_RANGES, "bytes")
+                        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                        .body(Body::empty())
+                        .unwrap();
+                    return Ok(response);
+                }
+            }
+            Err(e) => {
+                println!("HEAD request failed for {}: {}", url, e);
             }
         }
     }
 
     // Also try author hints for HEAD
     for pubkey in as_hints {
+        println!("Fetching author servers for HEAD hint: {}", pubkey);
         if let Ok(servers) = fetch_author_servers(pubkey).await {
             for server in servers {
                 let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
-                if let Ok(resp) = client.head(&url).send().await {
-                    if resp.status().is_success() {
-                        let content_type = resp
-                            .headers()
-                            .get(header::CONTENT_TYPE)
-                            .and_then(|v| v.to_str().ok())
-                            .unwrap_or("application/octet-stream")
-                            .to_string();
-                        let content_length = resp
-                            .headers()
-                            .get(header::CONTENT_LENGTH)
-                            .and_then(|v| v.to_str().ok())
-                            .and_then(|v| v.parse::<u64>().ok())
-                            .unwrap_or(0);
+                println!("Checking HEAD for blob {} at author server {}", sha256, url);
+                match client.head(&url).send().await {
+                    Ok(resp) => {
+                        println!(
+                            "HEAD response from author server {}: {}",
+                            url,
+                            resp.status()
+                        );
+                        if resp.status().is_success() {
+                            let content_type = resp
+                                .headers()
+                                .get(header::CONTENT_TYPE)
+                                .and_then(|v| v.to_str().ok())
+                                .unwrap_or("application/octet-stream")
+                                .to_string();
+                            let content_length = resp
+                                .headers()
+                                .get(header::CONTENT_LENGTH)
+                                .and_then(|v| v.to_str().ok())
+                                .and_then(|v| v.parse::<u64>().ok())
+                                .unwrap_or(0);
 
-                        let response = Response::builder()
-                            .status(StatusCode::OK)
-                            .header(header::CONTENT_TYPE, content_type)
-                            .header(header::CONTENT_LENGTH, content_length)
-                            .header(header::ACCEPT_RANGES, "bytes")
-                            .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                            .body(Body::empty())
-                            .unwrap();
-                        return Ok(response);
+                            let response = Response::builder()
+                                .status(StatusCode::OK)
+                                .header(header::CONTENT_TYPE, content_type)
+                                .header(header::CONTENT_LENGTH, content_length)
+                                .header(header::ACCEPT_RANGES, "bytes")
+                                .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                                .body(Body::empty())
+                                .unwrap();
+                            return Ok(response);
+                        }
+                    }
+                    Err(e) => {
+                        println!("HEAD request failed for author server {}: {}", url, e);
                     }
                 }
             }
