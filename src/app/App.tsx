@@ -3,14 +3,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppStore } from "@/lib/store";
 import Settings from "@/components/Settings";
 import BlossomServer from "@/components/BlossomServer";
+import NostrRelay from "@/components/NostrRelay";
 import { Button } from "@/components/ui/button";
-import { Settings as SettingsIcon, Server } from "lucide-react";
+import { Settings as SettingsIcon, Server, Radio } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState<"server" | "settings">(
+  const [currentPage, setCurrentPage] = useState<"server" | "relay" | "settings">(
     "server",
   );
   const { theme, setBlossomPort } = useAppStore();
@@ -79,6 +80,13 @@ function AppContent() {
             <Server className="h-5 w-5" />
           </Button>
           <Button
+            variant={currentPage === "relay" ? "default" : "ghost"}
+            size="icon"
+            onClick={() => setCurrentPage("relay")}
+          >
+            <Radio className="h-5 w-5" />
+          </Button>
+          <Button
             variant={currentPage === "settings" ? "default" : "ghost"}
             size="icon"
             onClick={() => setCurrentPage("settings")}
@@ -89,6 +97,8 @@ function AppContent() {
         <div className="flex-1 overflow-auto p-4 md:p-6">
           {currentPage === "server" ? (
             <BlossomServer />
+          ) : currentPage === "relay" ? (
+            <NostrRelay />
           ) : (
             <div className="max-w-2xl mx-auto">
               <h1 className="text-3xl font-bold mb-6">Settings</h1>

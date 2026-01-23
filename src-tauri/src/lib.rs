@@ -9,6 +9,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use std::sync::Arc;
 use sync::SyncSettings;
 use tokio::sync::RwLock;
+use tauri::Manager;
 
 #[derive(Clone)]
 struct SyncSettingsState {
@@ -24,7 +25,21 @@ pub fn run_app() {
             let handle = app.handle().clone();
 
             tauri::async_runtime::spawn(async move {
-                http_server::start_server(handle).await;
+                http_server::start_server(handle.clone()).await;
+            });
+
+            let relay_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let relay_dir = relay_handle
+                    .path()
+                    .app_local_data_dir()
+                    .unwrap_or_else(|_| std::path::PathBuf::from("./relay"))
+                    .join("relay");
+
+                if let Ok(_) = std::fs::create_dir_all(&relay_dir) {
+                    let db_path = relay_dir.to_string_lossy().to_string();
+                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(4869, &db_path).await;
+                }
             });
 
             Ok(())

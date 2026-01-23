@@ -19,9 +19,8 @@
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "@tauri-apps/plugin-fs": "^2.0.0",
-    "@tauri-apps/plugin-shell": "^2.0.0",
     "@tauri-apps/plugin-notification": "^2.0.0",
-    "tauri-plugin-nostrnative": "file:../nostrnative",
+    "@tauri-apps/plugin-shell": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.0.0",
@@ -30,6 +29,7 @@
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
+    "tauri-plugin-nostrnative": "file:../nostrnative",
     "zod": "^3.23.0",
     "zustand": "^4.5.0"
   },

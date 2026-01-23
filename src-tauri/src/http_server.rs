@@ -219,7 +219,7 @@ async fn get_blob(
 ) -> Result<Response, Response> {
     let sha256 = strip_extension(&sha256_ext);
     let extension = sha256_ext.split('.').nth(1).map(|s| s.to_string());
-    println!("{:?}: {} {:?}", hints, sha256_ext, headers);
+    tracing::info!("Received request for blob: {} (sha256: {})", sha256_ext, sha256);
     if !state.storage.exists(sha256).await {
         let xs = hints.get_xs();
         let as_hints = hints.get_as();
@@ -283,10 +283,7 @@ async fn head_blob(
 ) -> Result<Response, Response> {
     let sha256 = strip_extension(&sha256_ext);
 
-    println!(
-        "ee4ec8d9eb9692dabbd4ed1b0bce3c101d70780b94c28a99fb9f4adfdee26921: {} {:?}",
-        sha256_ext, headers
-    );
+    tracing::info!("Received HEAD request for blob: {}", sha256_ext);
     if !state.storage.exists(sha256).await {
         let xs = hints.get_xs();
         let as_hints = hints.get_as();
@@ -350,6 +347,7 @@ async fn upload_blob(
     body: Bytes,
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
+    tracing::info!("Received blob upload: sha256={}, size={} bytes", sha256, body.len());
 
     let x_sha256 = headers.get("X-SHA-256").and_then(|h| h.to_str().ok());
 
@@ -440,6 +438,7 @@ async fn upload_media(
     body: Bytes,
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
+    tracing::info!("Received media upload: sha256={}, size={} bytes", sha256, body.len());
 
     let x_sha256 = headers.get("X-SHA-256").and_then(|h| h.to_str().ok());
 
@@ -494,17 +493,17 @@ async fn mirror_blob(
     State(state): State<AppState>,
     axum::extract::Json(req): axum::extract::Json<MirrorRequest>,
 ) -> Result<Response, Response> {
-    println!("Mirroring blob from URL: {}", req.url);
+    tracing::info!("Mirroring blob from URL: {}", req.url);
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()
         .map_err(|e| {
-            println!("Failed to build client: {}", e);
+            tracing::error!("Failed to build client: {}", e);
             error_response(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string())
         })?;
 
     let response = client.get(&req.url).send().await.map_err(|e| {
-        println!("Failed to send request to {}: {}", req.url, e);
+        tracing::error!("Failed to send request to {}: {}", req.url, e);
         error_response(StatusCode::BAD_GATEWAY, &e.to_string())
     })?;
 
@@ -522,19 +521,19 @@ async fn mirror_blob(
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
-    println!(
-        "Response status: {}, content_type: {:?}",
+    tracing::info!(
+        "Mirror response status: {}, content_type: {:?}",
         response.status(),
         content_type
     );
 
     let data = response.bytes().await.map_err(|e| {
-        println!("Failed to read bytes from {}: {}", req.url, e);
+        tracing::error!("Failed to read bytes from {}: {}", req.url, e);
         error_response(StatusCode::BAD_GATEWAY, &e.to_string())
     })?;
 
     let sha256 = crate::storage::StorageManager::compute_sha256(&data);
-    println!("Downloaded blob sha256: {}", sha256);
+    tracing::info!("Downloaded mirrored blob sha256: {}, size={} bytes", sha256, data.len());
 
     match state
         .storage
@@ -542,7 +541,7 @@ async fn mirror_blob(
         .await
     {
         Ok(descriptor) => {
-            println!("Successfully stored mirrored blob: {}", sha256);
+            tracing::info!("Successfully stored mirrored blob: {}", sha256);
             let json = serde_json::to_string(&descriptor).unwrap();
             Ok(Response::builder()
                 .status(StatusCode::OK)
@@ -551,7 +550,7 @@ async fn mirror_blob(
                 .unwrap())
         }
         Err(e) => {
-            println!("Failed to store mirrored blob {}: {}", sha256, e);
+            tracing::error!("Failed to store mirrored blob {}: {}", sha256, e);
             Err(error_response(StatusCode::INTERNAL_SERVER_ERROR, &e))
         }
     }
@@ -570,8 +569,9 @@ async fn report_blob(
 
 async fn list_blobs(
     State(state): State<AppState>,
-    axum::extract::Path(_pubkey): axum::extract::Path<String>,
+    axum::extract::Path(pubkey): axum::extract::Path<String>,
 ) -> Result<Response, Response> {
+    tracing::info!("Received list request for pubkey: {}", pubkey);
     match state.storage.list_all().await {
         Ok(blobs) => {
             let json = serde_json::to_string(&blobs).unwrap();
@@ -604,10 +604,10 @@ async fn proxy_blob_and_cache(
 
     for server in xs {
         let url = server.trim_end_matches('/').to_string();
-        println!("Proxying and caching blob {} from {}", sha256, url);
+        tracing::info!("Proxying and caching blob {} from {}", sha256, url);
         match client.get(&url).send().await {
             Ok(resp) => {
-                println!("Proxy response status from {}: {}", url, resp.status());
+                tracing::info!("Proxy response status from {}: {}", url, resp.status());
                 if resp.status().is_success() {
                     let content_type = resp
                         .headers()
@@ -621,7 +621,7 @@ async fn proxy_blob_and_cache(
                             // let received_sha256 = StorageManager::compute_sha256(&bytes);
                             // if received_sha256 == sha256 {
                             // Store locally
-                            println!("Hash valid, storing blob {} locally", sha256);
+                            tracing::info!("Hash valid, storing blob {} locally", sha256);
                             let _ = storage
                                 .store(
                                     bytes.to_vec(),
@@ -632,26 +632,27 @@ async fn proxy_blob_and_cache(
                                 .await;
                             return Ok(());
                             // } else {
-                            //     println!(
+                            //     tracing::error!(
                             //         "Hash mismatch for blob {}: received {}",
                             //         sha256, received_sha256
                             //     );
                             // }
                         }
                         Err(e) => {
-                            println!("Failed to read bytes during proxy from {}: {}", url, e);
+                            tracing::error!("Failed to read bytes during proxy from {}: {}", url, e);
                         }
                     }
                 }
             }
             Err(e) => {
-                println!("Proxy GET request failed for {}: {}", url, e);
+                tracing::error!("Proxy GET request failed for {}: {}", url, e);
             }
         }
     }
 
     Err("Not found in hints".to_string())
 }
+
 
 async fn proxy_blob_head(
     _storage: &StorageManager,
@@ -663,10 +664,10 @@ async fn proxy_blob_head(
 
     for server in xs {
         let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
-        println!("Checking HEAD for blob {} at {}", sha256, url);
+        tracing::info!("Checking HEAD for blob {} at {}", sha256, url);
         match client.head(&url).send().await {
             Ok(resp) => {
-                println!("HEAD response from {}: {}", url, resp.status());
+                tracing::info!("HEAD response from {}: {}", url, resp.status());
                 if resp.status().is_success() {
                     let content_type = resp
                         .headers()
@@ -693,21 +694,21 @@ async fn proxy_blob_head(
                 }
             }
             Err(e) => {
-                println!("HEAD request failed for {}: {}", url, e);
+                tracing::error!("HEAD request failed for {}: {}", url, e);
             }
         }
     }
 
     // Also try author hints for HEAD
     for pubkey in as_hints {
-        println!("Fetching author servers for HEAD hint: {}", pubkey);
+        tracing::info!("Fetching author servers for HEAD hint: {}", pubkey);
         if let Ok(servers) = fetch_author_servers(pubkey).await {
             for server in servers {
                 let url = format!("{}/{}", server.trim_end_matches('/'), sha256);
-                println!("Checking HEAD for blob {} at author server {}", sha256, url);
+                tracing::info!("Checking HEAD for blob {} at author server {}", sha256, url);
                 match client.head(&url).send().await {
                     Ok(resp) => {
-                        println!(
+                        tracing::info!(
                             "HEAD response from author server {}: {}",
                             url,
                             resp.status()
@@ -738,7 +739,7 @@ async fn proxy_blob_head(
                         }
                     }
                     Err(e) => {
-                        println!("HEAD request failed for author server {}: {}", url, e);
+                        tracing::error!("HEAD request failed for author server {}: {}", url, e);
                     }
                 }
             }

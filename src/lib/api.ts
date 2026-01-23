@@ -256,4 +256,16 @@ export const nostrApi = {
   triggerSync: async (): Promise<void> => {
     return await invoke('trigger_sync');
   },
+  getRelayStatus: async (): Promise<boolean> => {
+    return await nostrNative.getNostrRelayStatus();
+  },
+  startRelay: async (port: number, dbPath: string): Promise<void> => {
+    return await nostrNative.startNostrRelay(port, dbPath);
+  },
+  stopRelay: async (): Promise<void> => {
+    return await nostrNative.stopNostrRelay();
+  },
+  getRelayEventCounts: async (): Promise<Record<number, number>> => {
+    return await nostrNative.getNostrEventCounts() as Record<number, number>;
+  },
 };

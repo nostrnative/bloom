@@ -21,6 +21,8 @@ interface AppState {
   interestedContactPubkeys: string[];
   blossomPort: number;
   preferredPort: number | null;
+  relayEnabled: boolean;
+  relayPort: number;
   statusFilters: {
     accepted: boolean;
     tentative: boolean;
@@ -47,6 +49,8 @@ interface AppState {
   toggleInterestedContactPubkey: (pubkey: string) => void;
   setBlossomPort: (port: number) => void;
   setPreferredPort: (port: number | null) => void;
+  setRelayEnabled: (enabled: boolean) => void;
+  setRelayPort: (port: number) => void;
   setStatusFilters: (filters: {
     accepted: boolean;
     tentative: boolean;
@@ -84,6 +88,8 @@ export const useAppStore = create<AppState>()(
       interestedContactPubkeys: [],
       blossomPort: 24242,
       preferredPort: null,
+      relayEnabled: true,
+      relayPort: 4869,
       statusFilters: {
         accepted: true,
         tentative: true,
@@ -143,6 +149,8 @@ export const useAppStore = create<AppState>()(
       },
       setBlossomPort: (port) => set({ blossomPort: port }),
       setPreferredPort: (port) => set({ preferredPort: port }),
+      setRelayEnabled: (enabled) => set({ relayEnabled: enabled }),
+      setRelayPort: (port) => set({ relayPort: port }),
       setStatusFilters: (filters) => set({ statusFilters: filters }),
       getAllRelays: () => {
         const state = get();

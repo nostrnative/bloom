@@ -28,11 +28,16 @@ export default function Settings() {
     interestedContactPubkeys,
     preferredPort,
     setPreferredPort,
+    relayEnabled,
+    setRelayEnabled,
+    relayPort,
+    setRelayPort,
     blossomPort,
   } = useAppStore();
   const [inputNsec, setInputNsec] = useState(nsec || "");
   const [newRelay, setNewRelay] = useState("");
   const [inputPort, setInputPort] = useState(preferredPort?.toString() || "");
+  const [inputRelayPort, setInputRelayPort] = useState(relayPort.toString());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
@@ -44,6 +49,14 @@ export default function Settings() {
       setPreferredPort(port);
     } else if (value === "") {
       setPreferredPort(null);
+    }
+  };
+
+  const handleRelayPortChange = (value: string) => {
+    setInputRelayPort(value);
+    const port = parseInt(value);
+    if (!isNaN(port) && port > 0 && port < 65536) {
+      setRelayPort(port);
     }
   };
 
@@ -223,6 +236,43 @@ export default function Settings() {
                 <p className="text-xs text-zinc-500">
                   Set a specific port to use. Requires app restart to apply to
                   the server.
+                </p>
+              </div>
+            </div>
+          </section>
+
+            {/* Internal Nostr Relay Section */}
+          <section className="space-y-4">
+            <h3 className="border-b pb-2 text-lg font-semibold text-zinc-700 dark:text-zinc-300">
+              Internal Nostr Relay
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Enabled</span>
+                  <span className="text-xs text-zinc-500">
+                    Run a local Nostr relay on this device
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={relayEnabled}
+                  onChange={(e) => setRelayEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Relay Port</label>
+                <input
+                  type="number"
+                  className="w-full rounded-md border p-2 dark:border-zinc-700 dark:bg-zinc-900"
+                  placeholder="Default (4869)"
+                  value={inputRelayPort}
+                  onChange={(e) => handleRelayPortChange(e.target.value)}
+                />
+                <p className="text-xs text-zinc-500">
+                  Port for the internal Nostr relay.
                 </p>
               </div>
             </div>
