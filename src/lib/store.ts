@@ -34,7 +34,7 @@ interface AppState {
   setNotificationsEnabled: (enabled: boolean) => void;
   setReminderInterval: (interval: number) => void;
   setSelectedCalendarId: (id: string | null) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: "light" | "dark" | "system") => void;
   setLocalRelay: (relay: string | null) => void;
   setSyncEnabled: (enabled: boolean) => void;
   setSyncIntervalMinutes: (interval: number) => void;
@@ -89,7 +89,7 @@ export const useAppStore = create<AppState>()(
       blossomPort: 24242,
       preferredPort: null,
       relayEnabled: true,
-      relayPort: 4869,
+      relayPort: 4870,
       statusFilters: {
         accepted: true,
         tentative: true,
@@ -121,11 +121,10 @@ export const useAppStore = create<AppState>()(
         if (selectedContactPubkeys.includes(pk)) {
           set({
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk
+              (k) => k !== pk,
             ),
           });
-        }
-        else {
+        } else {
           set({ selectedContactPubkeys: [...selectedContactPubkeys, pk] });
         }
       },
@@ -136,14 +135,13 @@ export const useAppStore = create<AppState>()(
         if (interestedContactPubkeys.includes(pk)) {
           set({
             interestedContactPubkeys: interestedContactPubkeys.filter(
-              (k) => k !== pk
+              (k) => k !== pk,
             ),
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk
+              (k) => k !== pk,
             ),
           });
-        }
-        else {
+        } else {
           set({ interestedContactPubkeys: [...interestedContactPubkeys, pk] });
         }
       },

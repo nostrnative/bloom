@@ -3,11 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import { nostrApi, UserProfile } from "@/lib/api";
-import {
-  Trash2,
-  Plus,
-  RefreshCw,
-} from "lucide-react";
+import { Trash2, Plus, RefreshCw } from "lucide-react";
 
 export default function Settings() {
   const {
@@ -241,7 +237,7 @@ export default function Settings() {
             </div>
           </section>
 
-            {/* Internal Nostr Relay Section */}
+          {/* Internal Nostr Relay Section */}
           <section className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold text-zinc-700 dark:text-zinc-300">
               Internal Nostr Relay
@@ -267,7 +263,7 @@ export default function Settings() {
                 <input
                   type="number"
                   className="w-full rounded-md border p-2 dark:border-zinc-700 dark:bg-zinc-900"
-                  placeholder="Default (4869)"
+                  placeholder="Default (4870)"
                   value={inputRelayPort}
                   onChange={(e) => handleRelayPortChange(e.target.value)}
                 />

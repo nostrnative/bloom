@@ -8,8 +8,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
-use tokio::sync::RwLock;
 use tauri::Manager;
+use tokio::sync::RwLock;
 
 #[derive(Clone)]
 struct SyncSettingsState {
@@ -38,7 +38,7 @@ pub fn run_app() {
 
                 if let Ok(_) = std::fs::create_dir_all(&relay_dir) {
                     let db_path = relay_dir.to_string_lossy().to_string();
-                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(4869, &db_path).await;
+                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path).await;
                 }
             });
 
