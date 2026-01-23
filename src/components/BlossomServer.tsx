@@ -181,46 +181,43 @@ export default function BlossomServer() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Blobs</CardTitle>
+          <CardHeader className="pb-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Connection URL
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingBlobs ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                blobs.length
-              )}
+            <div className="flex items-center justify-between">
+              <code className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                {serverUrl}
+              </code>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigator.clipboard.writeText(serverUrl)}
+              >
+                Copy
+              </Button>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Storage Used</CardTitle>
+          <CardHeader className="pb-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Storage Info
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingBlobs ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                formatFileSize(totalSize)
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Server Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${serverRunning ? "text-green-600" : "text-red-600"}`}
-            >
-              {serverRunning ? "Online" : "Offline"}
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold">
+                {isLoadingBlobs ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  formatFileSize(totalSize)
+                )}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {blobs.length} blobs
+              </div>
             </div>
           </CardContent>
         </Card>
