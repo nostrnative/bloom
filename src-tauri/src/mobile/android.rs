@@ -28,15 +28,30 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
 
     let rt = Runtime::new().expect("Failed to create tokio runtime");
 
+    // Android specific storage paths - ideally passed from Kotlin
+    let files_dir = PathBuf::from("/data/data/com.blossom.server/files");
+    let storage_dir = files_dir.join("blobs");
+    let relay_dir = files_dir.join("relay");
+
+    if let Err(e) = std::fs::create_dir_all(&storage_dir) {
+        tracing::error!("Failed to create storage directory: {}", e);
+    }
+
+    if let Err(e) = std::fs::create_dir_all(&relay_dir) {
+        tracing::error!("Failed to create relay directory: {}", e);
+    }
+
+    // Spawn Relay Server
+    let relay_dir_clone = relay_dir.clone();
+    rt.spawn(async move {
+        let db_path = relay_dir_clone.to_string_lossy().to_string();
+        tracing::info!("Starting background relay at {}", db_path);
+        let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path).await;
+    });
+
+    // Spawn Blossom Server
     rt.spawn(async move {
         tracing::info!("Background Blossom server starting on port {}...", port);
-
-        // Android specific storage path - ideally passed from Kotlin
-        let storage_dir = PathBuf::from("/data/data/com.blossom.server/files/blobs");
-        if let Err(e) = std::fs::create_dir_all(&storage_dir) {
-            tracing::error!("Failed to create storage directory: {}", e);
-            return;
-        }
 
         let server_url = format!("http://0.0.0.0:{}", port);
         let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));

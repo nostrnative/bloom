@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 
@@ -15,6 +16,7 @@ class BlossomService : Service() {
     private val TAG = "BlossomService"
     private val CHANNEL_ID = "BlossomServerChannel"
     private val NOTIFICATION_ID = 1
+    private var wakeLock: PowerManager.WakeLock? = null
 
     // Native methods from Rust
     private external fun startRustServer(port: Int)
@@ -31,6 +33,10 @@ class BlossomService : Service() {
         super.onCreate()
         Log.d(TAG, "BlossomService created")
         createNotificationChannel()
+
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BlossomService::WakeLock")
+        wakeLock?.acquire()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -48,6 +54,11 @@ class BlossomService : Service() {
 
     override fun onDestroy() {
         Log.d(TAG, "BlossomService destroying")
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
+        }
         stopRustServer()
         super.onDestroy()
     }
@@ -57,8 +68,8 @@ class BlossomService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val title = "Blossom Server"
-        val message = "Server is running in the background"
+        val title = "Blossom & Relay Server"
+        val message = "Blossom and Nostr relay are running in the background"
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
