@@ -100,6 +100,14 @@ class BlossomService : Service() {
         return START_STICKY
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.d(TAG, "Task removed, restarting service in 1 second")
+        // If the user swipes the app away, use the AlarmManager to restart the service
+        // This ensures the server keeps running even if the UI is dismissed
+        startService(this)
+        super.onTaskRemoved(rootIntent)
+    }
+
     override fun onDestroy() {
         Log.d(TAG, "BlossomService destroying")
         wakeLock?.let {
