@@ -572,12 +572,15 @@ async fn list_blobs(
     axum::extract::Path(pubkey): axum::extract::Path<String>,
 ) -> Result<Response, Response> {
     tracing::info!("Received list request for pubkey: {}", pubkey);
+    // Note: Current storage implementation doesn't track ownership by pubkey.
+    // We return all blobs for now to ensure visibility.
     match state.storage.list_all().await {
         Ok(blobs) => {
             let json = serde_json::to_string(&blobs).unwrap();
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header(header::CONTENT_TYPE, "application/json")
+                .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
                 .body(Body::from(json))
                 .unwrap())
         }

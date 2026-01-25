@@ -70,14 +70,15 @@ export default function BlossomServer() {
   }, [serverUrl]);
 
   const { data: blobs = [], isLoading: isLoadingBlobs } = useQuery({
-    queryKey: ["blobs", pubkey, serverUrl],
+    queryKey: ["blobs", serverUrl, pubkey],
     queryFn: async () => {
-      if (!pubkey) return [];
-      const response = await fetch(`${serverUrl}/list/${pubkey}`);
+      // Fallback to "anonymous" if no pubkey, but still try to list
+      const listPubkey = pubkey || "anonymous";
+      const response = await fetch(`${serverUrl}/list/${listPubkey}`);
       if (!response.ok) throw new Error("Failed to fetch blobs");
       return response.json() as Promise<BlobItem[]>;
     },
-    enabled: !!pubkey && serverRunning,
+    enabled: serverRunning,
   });
 
   const uploadMutation = useMutation({
@@ -101,7 +102,7 @@ export default function BlossomServer() {
       return response.json() as Promise<BlobItem>;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blobs", pubkey] });
+      queryClient.invalidateQueries({ queryKey: ["blobs", serverUrl] });
     },
   });
 
@@ -117,7 +118,7 @@ export default function BlossomServer() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blobs", pubkey] });
+      queryClient.invalidateQueries({ queryKey: ["blobs", serverUrl] });
     },
   });
 
