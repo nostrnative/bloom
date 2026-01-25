@@ -54,65 +54,22 @@ export interface UserProfile {
 }
 
 export const nostrApi = {
-  verifyNsec: async (nsec: string): Promise<string> => {
-    return await nostrNative.verifyNsec(nsec);
-  },
-
   parsePubkey: async (pubkey: string): Promise<string> => {
     return await nostrNative.parsePubkey(pubkey);
-  },
-
-  generateNsec: async (): Promise<string> => {
-    return await nostrNative.generateNewNsec();
   },
 
   fetchEvents: async (
     pubkey: string,
     relays: string[],
-    nsec?: string,
     rangeStart?: number,
     rangeEnd?: number,
     authors?: string[]
   ): Promise<NostrEvent[]> => {
     return (await nostrNative.fetchCalendarEvents(pubkey, relays, {
-      nsec,
       rangeStart,
       rangeEnd,
       authors,
     })) as unknown as NostrEvent[];
-  },
-
-  publishEvent: async (
-    nsec: string,
-    relays: string[],
-    eventData: CalendarEventRequest
-  ): Promise<string> => {
-    return await nostrNative.publishCalendarEvent(
-      nsec,
-      relays,
-      eventData as any
-    );
-  },
-
-  publishBatchEvents: async (
-    nsec: string,
-    relays: string[],
-    events: CalendarEventRequest[]
-  ): Promise<string[]> => {
-    return await nostrNative.publishBatchCalendarEvents(
-      nsec,
-      relays,
-      events as any
-    );
-  },
-
-  deleteEvent: async (
-    nsec: string,
-    relays: string[],
-    eventId: string | string[]
-  ): Promise<string> => {
-    const eventIds = Array.isArray(eventId) ? eventId : [eventId];
-    return await nostrNative.deleteCalendarEvent(nsec, relays, eventIds);
   },
 
   fetchContactList: async (
@@ -125,14 +82,6 @@ export const nostrApi = {
     )) as unknown as Contact[];
   },
 
-  updateContactList: async (
-    nsec: string,
-    relays: string[],
-    contacts: Contact[]
-  ): Promise<string> => {
-    return await nostrNative.updateContactList(nsec, relays, contacts as any);
-  },
-
   fetchProfiles: async (
     pubkeys: string[],
     relays: string[]
@@ -141,20 +90,6 @@ export const nostrApi = {
       pubkeys,
       relays
     )) as unknown as UserProfile[];
-  },
-
-  sendDirectMessage: async (
-    nsec: string,
-    receiverPubkey: string,
-    message: string,
-    relays: string[]
-  ): Promise<string> => {
-    return await nostrNative.sendDirectMessage(
-      nsec,
-      receiverPubkey,
-      message,
-      relays
-    );
   },
 
   updateReminderSettings: async (settings: {
@@ -175,22 +110,6 @@ export const nostrApi = {
       pubkey,
       relays
     )) as unknown as NostrEvent[];
-  },
-
-  publishCalendar: async (
-    nsec: string,
-    relays: string[],
-    calendar: CalendarRequest
-  ): Promise<string> => {
-    return await nostrNative.publishCalendar(nsec, relays, calendar as any);
-  },
-
-  deleteCalendar: async (
-    nsec: string,
-    relays: string[],
-    identifier: string
-  ): Promise<string> => {
-    return await nostrNative.deleteCalendar(nsec, relays, identifier);
   },
 
   fetchRSVPs: async (
@@ -223,27 +142,10 @@ export const nostrApi = {
     )) as unknown as NostrEvent[];
   },
 
-  publishRSVP: async (
-    nsec: string,
-    relays: string[],
-    eventCoordinate: string,
-    status: 'accepted' | 'declined' | 'tentative',
-    eventAuthor?: string
-  ): Promise<string> => {
-    return await nostrNative.publishRsvp(
-      nsec,
-      relays,
-      eventCoordinate,
-      status,
-      eventAuthor
-    );
-  },
-
   updateSyncSettings: async (settings: {
     local_relay: string | null;
     remote_relays: string[];
     pubkey: string | null;
-    nsec: string | null;
     interval_minutes: number;
     enabled: boolean;
     only_contacts: boolean;
@@ -251,6 +153,56 @@ export const nostrApi = {
     interested_contact_pubkeys: string[];
   }): Promise<void> => {
     return await invoke('update_sync_settings', { settings });
+  },
+
+
+  // Blossom
+  blossomMirror: async (
+    serverUrl: string,
+    authHeader: string,
+    url: string
+  ): Promise<string> => {
+    return await nostrNative.blossomMirror(serverUrl, authHeader, url);
+  },
+
+  blossomUpload: async (
+    serverUrl: string,
+    authHeader: string,
+    filePath: string
+  ): Promise<string> => {
+    return await nostrNative.blossomUpload(serverUrl, authHeader, filePath);
+  },
+
+  blossomUploadContent: async (
+    serverUrl: string,
+    authHeader: string,
+    content: string,
+    filename?: string,
+    mediaType?: string
+  ): Promise<string> => {
+    return await nostrNative.blossomUploadContent(
+      serverUrl,
+      authHeader,
+      content,
+      filename,
+      mediaType
+    );
+  },
+
+  blossomDelete: async (
+    serverUrl: string,
+    authHeader: string,
+    hash: string
+  ): Promise<void> => {
+    return await nostrNative.blossomDelete(serverUrl, authHeader, hash);
+  },
+
+  blossomList: async (
+    serverUrl: string,
+    pubkey: string,
+    authHeader?: string
+  ): Promise<any[]> => {
+    return await nostrNative.blossomList(serverUrl, pubkey, authHeader);
   },
 
   triggerSync: async (): Promise<void> => {

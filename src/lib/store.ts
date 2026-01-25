@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface AppState {
-  nsec: string | null;
   pubkey: string | null;
   relays: string[];
   notificationsEnabled: boolean;
@@ -40,7 +39,7 @@ interface AppState {
     declined: boolean;
     self: boolean;
   };
-  setCredentials: (nsec: string, pubkey: string) => void;
+  setCredentials: (pubkey: string) => void;
   setRelays: (relays: string[]) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
   setReminderInterval: (interval: number) => void;
@@ -86,7 +85,6 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      nsec: null,
       pubkey: null,
       relays: [
         "wss://relay.damus.io",
@@ -129,7 +127,7 @@ export const useAppStore = create<AppState>()(
         declined: true,
         self: true,
       },
-      setCredentials: (nsec, pubkey) => set({ nsec, pubkey }),
+      setCredentials: (pubkey) => set({ pubkey }),
       setRelays: (relays) => set({ relays }),
       setNotificationsEnabled: (enabled) =>
         set({ notificationsEnabled: enabled }),
@@ -209,7 +207,6 @@ export const useAppStore = create<AppState>()(
       },
       logout: () =>
         set({
-          nsec: null,
           pubkey: null,
           selectedCalendarId: null,
           selectedContactPubkeys: [],

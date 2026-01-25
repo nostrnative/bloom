@@ -29,7 +29,7 @@ interface BlobItem {
 }
 
 export default function BlossomServer() {
-  const { nsec, pubkey, blossomPort: port } = useAppStore();
+  const { pubkey, blossomPort: port } = useAppStore();
   const queryClient = useQueryClient();
   const [serverRunning, setServerRunning] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -269,7 +269,7 @@ export default function BlossomServer() {
               id="file-upload"
               multiple
               accept="image/*,video/*,audio/*,.pdf,.txt,.psbt"
-              disabled={uploadStats.isUploading || !nsec}
+              disabled={uploadStats.isUploading || !pubkey}
             />
             <label htmlFor="file-upload" className="cursor-pointer">
               {uploadStats.isUploading ? (
@@ -283,7 +283,7 @@ export default function BlossomServer() {
                   : "Click to upload files"}
               </p>
               <p className="text-sm text-gray-500">
-                {!nsec
+                {!pubkey
                   ? "Set up your Nostr key in settings first"
                   : "Drag and drop or click to select multiple files"}
               </p>

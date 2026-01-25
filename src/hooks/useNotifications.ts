@@ -18,7 +18,6 @@ export interface NotificationItem {
 export function useNotifications() {
   const {
     pubkey,
-    nsec,
     getAllRelays,
     lastNotificationVisit,
     setLastNotificationVisit,
@@ -42,7 +41,6 @@ export function useNotifications() {
       const rawEvents = await nostrApi.fetchEvents(
         pubkey,
         getAllRelays(),
-        nsec || undefined
         // No range limits -> fetch all
       );
       return rawEvents.map(parseNostrEvent);

@@ -57,7 +57,6 @@ export function useEvents(
 ) {
   const {
     pubkey,
-    nsec,
     selectedCalendarId,
     getAllRelays,
     onlyContacts,
@@ -87,7 +86,6 @@ export function useEvents(
       const rawEvents = await nostrApi.fetchEvents(
         pubkey,
         getAllRelays(),
-        nsec || undefined,
         useDifferentTimestamp ? rangeStart : undefined,
         useDifferentTimestamp ? rangeEnd : undefined,
         authors
@@ -115,7 +113,6 @@ export function useEvents(
       onlyContacts,
       getAllRelays,
       useDifferentTimestamp,
-      nsec,
       selectedContactPubkeys,
     ]
   );
@@ -211,17 +208,8 @@ export function useEvents(
   ]);
 
   const publishEventMutation = useMutation({
-    mutationFn: (events: CalendarEventRequest[]) => {
-      if (!nsec) throw new Error('No nsec');
-      const eventsWithTimestamp = events.map((e) => ({
-        ...e,
-        use_different_timestamp: useDifferentTimestamp,
-      }));
-      return nostrApi.publishBatchEvents(
-        nsec,
-        getAllRelays(),
-        eventsWithTimestamp
-      );
+    mutationFn: (_events: CalendarEventRequest[]) => {
+      throw new Error('Publishing requires a private key (currently disabled)');
     },
     onMutate: async (newEvents) => {
       await queryClient.cancelQueries({ queryKey: ['events'] });
@@ -292,9 +280,8 @@ export function useEvents(
   });
 
   const deleteEventMutation = useMutation({
-    mutationFn: (id: string | string[]) => {
-      if (!nsec) throw new Error('No nsec');
-      return nostrApi.deleteEvent(nsec, getAllRelays(), id);
+    mutationFn: (_id: string | string[]) => {
+      throw new Error('Deleting requires a private key (currently disabled)');
     },
     onMutate: async (deletedEventId) => {
       await queryClient.cancelQueries({ queryKey: ['events'] });
