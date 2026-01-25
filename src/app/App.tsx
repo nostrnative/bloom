@@ -68,31 +68,33 @@ function AppContent() {
     <main className="h-screen w-screen overflow-hidden bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       <div className="fixed top-0 right-0 left-0 z-50 h-[env(safe-area-inset-top)] bg-zinc-950" />
       <div className="flex h-full flex-col md:flex-row">
-        <nav className="flex h-16 w-full items-center justify-around bg-zinc-100 py-2 dark:bg-zinc-900 md:h-full md:w-16 md:flex-col md:justify-start md:space-y-4 md:py-4">
-          <div className="hidden md:flex items-center justify-center pb-2">
+        <nav className="flex h-16 w-full items-center justify-between px-4 bg-zinc-100 py-2 dark:bg-zinc-900 md:h-full md:w-16 md:flex-col md:justify-start md:space-y-4 md:py-4 md:px-0 md:items-center">
+          <div className="flex items-center justify-center pb-0 md:pb-2">
             <img src="/logo.png" alt="Blossom Logo" className="h-10 w-10 rounded-xl" />
           </div>
-          <Button
-            variant={currentPage === "server" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setCurrentPage("server")}
-          >
-            <Server className="h-5 w-5" />
-          </Button>
-          <Button
-            variant={currentPage === "relay" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setCurrentPage("relay")}
-          >
-            <Radio className="h-5 w-5" />
-          </Button>
-          <Button
-            variant={currentPage === "settings" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setCurrentPage("settings")}
-          >
-            <SettingsIcon className="h-5 w-5" />
-          </Button>
+          <div className="flex flex-1 justify-around items-center md:flex-col md:space-y-4 md:justify-start">
+            <Button
+              variant={currentPage === "server" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setCurrentPage("server")}
+            >
+              <Server className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={currentPage === "relay" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setCurrentPage("relay")}
+            >
+              <Radio className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={currentPage === "settings" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setCurrentPage("settings")}
+            >
+              <SettingsIcon className="h-5 w-5" />
+            </Button>
+          </div>
         </nav>
         <div className="flex-1 overflow-auto p-4 md:p-6">
           {currentPage === "server" ? (

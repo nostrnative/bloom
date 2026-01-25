@@ -165,7 +165,9 @@ export default function BlossomServer() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src="/logo.png" alt="Blossom Logo" className="h-12 w-12 rounded-2xl shadow-sm" />
+          <div className="p-3 bg-primary/10 rounded-2xl">
+            <Server className="h-8 w-8 text-primary" />
+          </div>
           <div>
             <h1 className="text-3xl font-bold">Blossom Server</h1>
             <p className="text-muted-foreground">
