@@ -233,7 +233,15 @@ export default function Settings() {
               <input
                 type="checkbox"
                 checked={relayEnabled}
-                onChange={(e) => setRelayEnabled(e.target.checked)}
+                onChange={async (e) => {
+                  const enabled = e.target.checked;
+                  setRelayEnabled(enabled);
+                  try {
+                    await invoke("toggle_relay", { enabled, port: relayPort });
+                  } catch (err) {
+                    console.error("Failed to toggle relay:", err);
+                  }
+                }}
                 className="h-5 w-5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
               />
             </div>
