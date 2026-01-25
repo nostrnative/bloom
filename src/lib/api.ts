@@ -151,6 +151,9 @@ export const nostrApi = {
     only_contacts: boolean;
     last_sync_timestamp: number | null;
     interested_contact_pubkeys: string[];
+    relay_allowed_kinds?: number[];
+    relay_allowed_pubkeys?: string[];
+    relay_allowed_tagged_pubkeys?: string[];
   }): Promise<void> => {
     return await invoke('update_sync_settings', { settings });
   },

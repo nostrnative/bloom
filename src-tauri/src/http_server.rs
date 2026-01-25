@@ -219,7 +219,11 @@ async fn get_blob(
 ) -> Result<Response, Response> {
     let sha256 = strip_extension(&sha256_ext);
     let extension = sha256_ext.split('.').nth(1).map(|s| s.to_string());
-    tracing::info!("Received request for blob: {} (sha256: {})", sha256_ext, sha256);
+    tracing::info!(
+        "Received request for blob: {} (sha256: {})",
+        sha256_ext,
+        sha256
+    );
     if !state.storage.exists(sha256).await {
         let xs = hints.get_xs();
         let as_hints = hints.get_as();
@@ -347,7 +351,11 @@ async fn upload_blob(
     body: Bytes,
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
-    tracing::info!("Received blob upload: sha256={}, size={} bytes", sha256, body.len());
+    tracing::info!(
+        "Received blob upload: sha256={}, size={} bytes",
+        sha256,
+        body.len()
+    );
 
     let x_sha256 = headers.get("X-SHA-256").and_then(|h| h.to_str().ok());
 
@@ -438,7 +446,11 @@ async fn upload_media(
     body: Bytes,
 ) -> Result<Response, Response> {
     let sha256 = crate::storage::StorageManager::compute_sha256(&body);
-    tracing::info!("Received media upload: sha256={}, size={} bytes", sha256, body.len());
+    tracing::info!(
+        "Received media upload: sha256={}, size={} bytes",
+        sha256,
+        body.len()
+    );
 
     let x_sha256 = headers.get("X-SHA-256").and_then(|h| h.to_str().ok());
 
@@ -533,7 +545,11 @@ async fn mirror_blob(
     })?;
 
     let sha256 = crate::storage::StorageManager::compute_sha256(&data);
-    tracing::info!("Downloaded mirrored blob sha256: {}, size={} bytes", sha256, data.len());
+    tracing::info!(
+        "Downloaded mirrored blob sha256: {}, size={} bytes",
+        sha256,
+        data.len()
+    );
 
     match state
         .storage
@@ -642,7 +658,11 @@ async fn proxy_blob_and_cache(
                             // }
                         }
                         Err(e) => {
-                            tracing::error!("Failed to read bytes during proxy from {}: {}", url, e);
+                            tracing::error!(
+                                "Failed to read bytes during proxy from {}: {}",
+                                url,
+                                e
+                            );
                         }
                     }
                 }
@@ -655,7 +675,6 @@ async fn proxy_blob_and_cache(
 
     Err("Not found in hints".to_string())
 }
-
 
 async fn proxy_blob_head(
     _storage: &StorageManager,

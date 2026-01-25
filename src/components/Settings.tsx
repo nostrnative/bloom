@@ -103,6 +103,9 @@ export default function Settings() {
       only_contacts: onlyContacts,
       last_sync_timestamp: lastSyncTimestamp,
       interested_contact_pubkeys: interestedContactPubkeys,
+      relay_allowed_kinds: relayAllowedKinds,
+      relay_allowed_pubkeys: relayAllowedPubkeys,
+      relay_allowed_tagged_pubkeys: relayAllowedTaggedPubkeys,
     });
   };
 
@@ -116,6 +119,9 @@ export default function Settings() {
     onlyContacts,
     interestedContactPubkeys,
     pubkey,
+    relayAllowedKinds,
+    relayAllowedPubkeys,
+    relayAllowedTaggedPubkeys,
   ]);
 
   const addRelay = () => {
@@ -144,7 +150,9 @@ export default function Settings() {
         <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
-            <CardDescription>Configure how the application looks</CardDescription>
+            <CardDescription>
+              Configure how the application looks
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
             <div className="flex items-center justify-between">
@@ -179,7 +187,9 @@ export default function Settings() {
         <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
           <CardHeader>
             <CardTitle>Server Configuration</CardTitle>
-            <CardDescription>Configure your Blossom media server</CardDescription>
+            <CardDescription>
+              Configure your Blossom media server
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
             <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900 border border-dashed border-zinc-300 dark:border-zinc-700">
@@ -203,9 +213,6 @@ export default function Settings() {
                 value={inputPort}
                 onChange={(e) => setInputPort(e.target.value)}
               />
-              <p className="text-[10px] text-muted-foreground font-medium text-amber-600 dark:text-amber-400">
-                Requires app restart to apply to the server.
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -220,7 +227,9 @@ export default function Settings() {
         <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
           <CardHeader>
             <CardTitle>Local Relay</CardTitle>
-            <CardDescription>Run a local Nostr relay on this device</CardDescription>
+            <CardDescription>
+              Run a local Nostr relay on this device
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
             <div className="flex items-center justify-between">
@@ -273,9 +282,7 @@ export default function Settings() {
                     values={relayAllowedKinds.map(String)}
                     onChange={(vals) =>
                       setRelayAllowedKinds(
-                        vals
-                          .map((v) => parseInt(v))
-                          .filter((v) => !isNaN(v)),
+                        vals.map((v) => parseInt(v)).filter((v) => !isNaN(v)),
                       )
                     }
                     placeholder="e.g. 1, 30023"
@@ -312,9 +319,7 @@ export default function Settings() {
                 <input
                   type="checkbox"
                   checked={relayStartOnBoot}
-                  onChange={(e) =>
-                    setRelayStartOnBoot(e.target.checked)
-                  }
+                  onChange={(e) => setRelayStartOnBoot(e.target.checked)}
                   className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 Start on Boot
@@ -333,7 +338,9 @@ export default function Settings() {
         <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
           <CardHeader>
             <CardTitle>Remote Relays</CardTitle>
-            <CardDescription>Configure remote relays for syncing</CardDescription>
+            <CardDescription>
+              Configure remote relays for syncing
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
             <div className="flex gap-2">

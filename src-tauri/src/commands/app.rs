@@ -1,5 +1,5 @@
-use tauri::{AppHandle, Manager, State};
 use crate::SyncSettingsState;
+use tauri::{AppHandle, Manager, State};
 
 #[tauri::command]
 pub async fn update_reminder_settings(settings: serde_json::Value) -> Result<String, String> {
@@ -58,6 +58,33 @@ pub async fn update_sync_settings(
     }
     if let Some(relay_port) = settings.get("relay_port").and_then(|v| v.as_u64()) {
         settings_guard.relay_port = relay_port as u16;
+    }
+    if let Some(kinds) = settings
+        .get("relay_allowed_kinds")
+        .and_then(|v| v.as_array())
+    {
+        settings_guard.relay_allowed_kinds = kinds
+            .iter()
+            .filter_map(|v| v.as_u64().map(|k| k as u16))
+            .collect();
+    }
+    if let Some(pubkeys) = settings
+        .get("relay_allowed_pubkeys")
+        .and_then(|v| v.as_array())
+    {
+        settings_guard.relay_allowed_pubkeys = pubkeys
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect();
+    }
+    if let Some(tagged) = settings
+        .get("relay_allowed_tagged_pubkeys")
+        .and_then(|v| v.as_array())
+    {
+        settings_guard.relay_allowed_tagged_pubkeys = tagged
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect();
     }
     Ok("Sync settings updated".to_string())
 }
