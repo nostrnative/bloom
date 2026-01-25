@@ -1,6 +1,6 @@
 use crate::http_server;
 use crate::storage::StorageManager;
-use jni::objects::JClass;
+use jni::objects::{JClass, JString};
 use jni::sys::jint;
 use jni::JNIEnv;
 use once_cell::sync::Lazy;
@@ -16,20 +16,26 @@ static RUNTIME: Lazy<Mutex<Option<Runtime>>> = Lazy::new(|| Mutex::new(None));
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
-    _env: JNIEnv,
+    mut env: JNIEnv,
     _class: JClass,
     port: jint,
+    base_path: JString,
 ) {
     if RUNNING.load(Ordering::SeqCst) {
         return;
     }
 
+    let base_path_str: String = env
+        .get_string(&base_path)
+        .expect("Couldn't get java string!")
+        .into();
+
     RUNNING.store(true, Ordering::SeqCst);
 
     let rt = Runtime::new().expect("Failed to create tokio runtime");
 
-    // Android specific storage paths - ideally passed from Kotlin
-    let files_dir = PathBuf::from("/data/data/com.blossom.server/files");
+    // Use dynamic storage paths from Kotlin
+    let files_dir = PathBuf::from(base_path_str);
     let storage_dir = files_dir.join("blobs");
     let relay_dir = files_dir.join("relay");
 

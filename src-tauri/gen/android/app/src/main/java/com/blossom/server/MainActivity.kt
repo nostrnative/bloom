@@ -1,12 +1,16 @@
 package com.blossom.server
 
 import android.os.Bundle
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.enableEdgeToEdge
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,12 +18,16 @@ class MainActivity : TauriActivity() {
     super.onCreate(savedInstanceState)
 
     requestBatteryOptimizationExemption()
+    requestNotificationPermission()
 
-    val intent = Intent(this, BlossomService::class.java)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      startForegroundService(intent)
-    } else {
-      startService(intent)
+    BlossomService.startService(this)
+  }
+
+  private fun requestNotificationPermission() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
+      }
     }
   }
 
