@@ -16,6 +16,11 @@ struct SyncSettingsState {
     settings: Arc<RwLock<SyncSettings>>,
 }
 
+#[tauri::command]
+fn restart_app_instance(handle: tauri::AppHandle) {
+    handle.restart();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run_app() {
     init_logging();
@@ -57,6 +62,7 @@ pub fn run_app() {
             commands::app::update_reminder_settings,
             commands::app::update_sync_settings,
             commands::app::trigger_sync,
+            restart_app_instance
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

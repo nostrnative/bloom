@@ -12,6 +12,7 @@ import {
   Globe,
   User,
   ShieldCheck,
+  RotateCw,
 } from "lucide-react";
 import {
   Card,
@@ -21,6 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { invoke } from "@tauri-apps/api/core";
 
 type SettingsTab = "account" | "blossom" | "relay" | "network";
 
@@ -48,54 +50,58 @@ export default function Settings() {
     relayPort,
     setRelayPort,
     blossomPort,
-    relayAuthEnabled,
-    setRelayAuthEnabled,
     relayAllowedKinds,
     setRelayAllowedKinds,
     relayAllowedPubkeys,
     setRelayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
     setRelayAllowedTaggedPubkeys,
-    relayUseSSL,
-    setRelayUseSSL,
-    relayHost,
-    setRelayHost,
-    relayAutoBackup,
-    setRelayAutoBackup,
-    relayAutoBackupFolder,
-    setRelayAutoBackupFolder,
     relayStartOnBoot,
     setRelayStartOnBoot,
-    relayUseProxy,
-    setRelayUseProxy,
-    relayProxyPort,
-    setRelayProxyPort,
   } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>("account");
   const [inputNsec, setInputNsec] = useState(nsec || "");
   const [newRelay, setNewRelay] = useState("");
-  const [inputPort, setInputPort] = useState(preferredPort?.toString() || "");
+  const [inputPort, setInputPort] = useState(
+    preferredPort?.toString() || blossomPort.toString(),
+  );
   const [inputRelayPort, setInputRelayPort] = useState(relayPort.toString());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [applyStatus, setApplyStatus] = useState<
+    "idle" | "success" | "restart"
+  >("idle");
   const queryClient = useQueryClient();
 
-  const handlePortChange = (value: string) => {
-    setInputPort(value);
-    const port = parseInt(value);
-    if (!isNaN(port) && port > 0 && port < 65536) {
-      setPreferredPort(port);
-    } else if (value === "") {
-      setPreferredPort(null);
+  const handleApplyPorts = () => {
+    const bPort = parseInt(inputPort);
+    const rPort = parseInt(inputRelayPort);
+
+    if (isNaN(bPort) || bPort <= 0 || bPort > 65535) {
+      setError("Invalid Blossom port");
+      return;
     }
+    if (isNaN(rPort) || rPort <= 0 || rPort > 65535) {
+      setError("Invalid Relay port");
+      return;
+    }
+    if (bPort === rPort) {
+      setError("Blossom and Relay cannot use the same port");
+      return;
+    }
+
+    setError("");
+    setPreferredPort(bPort);
+    setRelayPort(rPort);
+    setApplyStatus("restart");
   };
 
-  const handleRelayPortChange = (value: string) => {
-    setInputRelayPort(value);
-    const port = parseInt(value);
-    if (!isNaN(port) && port > 0 && port < 65536) {
-      setRelayPort(port);
+  const handleRestart = async () => {
+    try {
+      await invoke("restart_app_instance");
+    } catch (e) {
+      console.error("Failed to restart:", e);
     }
   };
 
@@ -190,13 +196,18 @@ export default function Settings() {
   };
 
   if (nsec) {
+    const hasChanges =
+      inputPort !== (preferredPort?.toString() || blossomPort.toString()) ||
+      inputRelayPort !== relayPort.toString();
+
     return (
       <div className="flex h-full flex-col lg:flex-row gap-6">
-        <aside className="w-full lg:w-48">
-          <nav className="flex flex-row gap-1 lg:flex-col">
+        {/* Sidebar Navigation */}
+        <aside className="w-full lg:w-48 overflow-x-auto lg:overflow-x-visible">
+          <nav className="flex flex-row gap-1 lg:flex-col min-w-max lg:min-w-0 pb-2 lg:pb-0 scrollbar-none">
             <Button
               variant={activeTab === "account" ? "default" : "ghost"}
-              className="justify-start flex-1 lg:flex-none"
+              className="justify-start flex-none lg:flex-none h-9 px-3 lg:px-4"
               onClick={() => setActiveTab("account")}
             >
               <User className="mr-2 h-4 w-4" />
@@ -204,7 +215,7 @@ export default function Settings() {
             </Button>
             <Button
               variant={activeTab === "blossom" ? "default" : "ghost"}
-              className="justify-start flex-1 lg:flex-none"
+              className="justify-start flex-none lg:flex-none h-9 px-3 lg:px-4"
               onClick={() => setActiveTab("blossom")}
             >
               <Server className="mr-2 h-4 w-4" />
@@ -212,7 +223,7 @@ export default function Settings() {
             </Button>
             <Button
               variant={activeTab === "relay" ? "default" : "ghost"}
-              className="justify-start flex-1 lg:flex-none"
+              className="justify-start flex-none lg:flex-none h-9 px-3 lg:px-4"
               onClick={() => setActiveTab("relay")}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -220,7 +231,7 @@ export default function Settings() {
             </Button>
             <Button
               variant={activeTab === "network" ? "default" : "ghost"}
-              className="justify-start flex-1 lg:flex-none"
+              className="justify-start flex-none lg:flex-none h-9 px-3 lg:px-4"
               onClick={() => setActiveTab("network")}
             >
               <Globe className="mr-2 h-4 w-4" />
@@ -229,7 +240,7 @@ export default function Settings() {
           </nav>
         </aside>
 
-        <main className="flex-1 space-y-6">
+        <main className="flex-1 space-y-6 pb-20">
           {activeTab === "account" && (
             <div className="space-y-6">
               <Card>
@@ -316,9 +327,9 @@ export default function Settings() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Default (24242)"
                       value={inputPort}
-                      onChange={(e) => handlePortChange(e.target.value)}
+                      onChange={(e) => setInputPort(e.target.value)}
                     />
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-muted-foreground font-medium text-amber-600 dark:text-amber-400">
                       Requires app restart to apply to the server.
                     </p>
                   </div>
@@ -330,6 +341,23 @@ export default function Settings() {
           {activeTab === "relay" && (
             <div className="space-y-6">
               <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center">
+                      <RefreshCw className="mr-2 h-5 w-5" />
+                      Internal Nostr Relay
+                    </CardTitle>
+                    <input
+                      type="checkbox"
+                      checked={relayEnabled}
+                      onChange={(e) => setRelayEnabled(e.target.checked)}
+                      className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <CardDescription>
+                    Run a local Nostr relay on this device
+                  </CardDescription>
+                </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -338,7 +366,7 @@ export default function Settings() {
                     <input
                       type="number"
                       value={inputRelayPort}
-                      onChange={(e) => handleRelayPortChange(e.target.value)}
+                      onChange={(e) => setInputRelayPort(e.target.value)}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
@@ -465,6 +493,59 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+          {/* Persistent Apply Bar */}
+          {hasChanges && (
+            <div className="fixed bottom-6 right-6 left-6 md:left-[280px] lg:left-[calc(16rem+48px)] flex items-center justify-between gap-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4 shadow-lg dark:border-indigo-900/50 dark:bg-indigo-950 animate-in fade-in slide-in-from-bottom-4">
+              <div className="flex items-center gap-3 text-indigo-900 dark:text-indigo-100">
+                <ShieldCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="hidden sm:block">
+                  <p className="text-sm font-bold">Unsaved Port Changes</p>
+                  <p className="text-[10px] opacity-80">
+                    Apply changes to update server configurations
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {error && (
+                  <p className="mr-2 text-xs font-medium text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setInputPort(
+                      preferredPort?.toString() || blossomPort.toString(),
+                    );
+                    setInputRelayPort(relayPort.toString());
+                    setError("");
+                  }}
+                >
+                  Discard
+                </Button>
+                {applyStatus === "restart" ? (
+                  <Button
+                    size="sm"
+                    onClick={handleRestart}
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                  >
+                    <RotateCw className="h-4 w-4 mr-2" />
+                    Restart
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={handleApplyPorts}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  >
+                    Apply
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </main>

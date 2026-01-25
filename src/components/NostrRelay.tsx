@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -10,22 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Radio,
-  RefreshCw,
   Database as DatabaseIcon,
-  Shield,
   Activity,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { nostrApi } from "@/lib/api";
 
 export default function NostrRelay() {
-  const { relayPort, relayEnabled, setRelayEnabled } = useAppStore();
+  const { relayPort } = useAppStore();
   const [relayRunning, setRelayRunning] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
   const [eventCounts, setEventCounts] = useState<Record<number, number>>({});
 
   const checkRelayStatus = async () => {
-    setIsChecking(true);
     try {
       const status = await nostrApi.getRelayStatus();
       setRelayRunning(status);
@@ -40,8 +35,6 @@ export default function NostrRelay() {
       console.error("Failed to check relay status:", error);
       setRelayRunning(false);
       setEventCounts({});
-    } finally {
-      setIsChecking(false);
     }
   };
 
