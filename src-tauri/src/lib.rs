@@ -41,7 +41,7 @@ pub fn run_app() {
                     .unwrap_or_else(|_| std::path::PathBuf::from("./relay"))
                     .join("relay");
 
-                if let Ok(_) = std::fs::create_dir_all(&relay_dir) {
+                if std::fs::create_dir_all(&relay_dir).is_ok() {
                     let db_path = relay_dir.to_string_lossy().to_string();
                     // We can't easily access the state here before .manage is called,
                     // but we can use the default port for now or wait for the frontend to trigger.
