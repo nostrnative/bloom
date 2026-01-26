@@ -46,7 +46,7 @@ pub fn run_app() {
                     // We can't easily access the state here before .manage is called,
                     // but we can use the default port for now or wait for the frontend to trigger.
                     // However, we should check if relay is enabled by default.
-                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path).await;
+                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path, None, None).await;
                 }
             });
 
