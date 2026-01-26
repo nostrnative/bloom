@@ -52,7 +52,7 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
     rt.spawn(async move {
         let db_path = relay_dir_clone.to_string_lossy().to_string();
         tracing::info!("Starting background relay at {}", db_path);
-        let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path).await;
+        let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path, None, None).await;
     });
 
     // Spawn Blossom Server

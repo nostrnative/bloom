@@ -9,7 +9,6 @@ import {
   Server,
   Globe,
   ShieldCheck,
-  RotateCw,
   RefreshCw,
   Skull,
   AlertTriangle,
@@ -65,9 +64,6 @@ export default function Settings() {
     relayAllowedTaggedPubkeys,
   );
   const [error, setError] = useState("");
-  const [applyStatus, setApplyStatus] = useState<
-    "idle" | "success" | "restart"
-  >("idle");
 
   const handleApplyPorts = () => {
     const bPort = parseInt(inputPort);
@@ -92,7 +88,6 @@ export default function Settings() {
     setRelayAllowedKinds(inputAllowedKinds);
     setRelayAllowedPubkeys(inputAllowedPubkeys);
     setRelayAllowedTaggedPubkeys(inputAllowedTaggedPubkeys);
-    setApplyStatus("restart");
   };
 
   const hasChanges =
@@ -103,14 +98,6 @@ export default function Settings() {
       JSON.stringify(relayAllowedPubkeys) ||
     JSON.stringify(inputAllowedTaggedPubkeys) !==
       JSON.stringify(relayAllowedTaggedPubkeys);
-
-  const handleRestart = async () => {
-    try {
-      await invoke("restart_app_instance");
-    } catch (e) {
-      console.error("Failed to restart:", e);
-    }
-  };
 
   const updateSync = async () => {
     await nostrApi.updateSyncSettings({
