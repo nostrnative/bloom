@@ -51,8 +51,6 @@ export default function Settings() {
     setRelayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
     setRelayAllowedTaggedPubkeys,
-    relayStartOnBoot,
-    setRelayStartOnBoot,
   } = useAppStore();
 
   const [newRelay, setNewRelay] = useState("");
@@ -60,6 +58,12 @@ export default function Settings() {
     preferredPort?.toString() || blossomPort.toString(),
   );
   const [inputRelayPort, setInputRelayPort] = useState(relayPort.toString());
+  const [inputAllowedKinds, setInputAllowedKinds] = useState(relayAllowedKinds);
+  const [inputAllowedPubkeys, setInputAllowedPubkeys] =
+    useState(relayAllowedPubkeys);
+  const [inputAllowedTaggedPubkeys, setInputAllowedTaggedPubkeys] = useState(
+    relayAllowedTaggedPubkeys,
+  );
   const [error, setError] = useState("");
   const [applyStatus, setApplyStatus] = useState<
     "idle" | "success" | "restart"
@@ -85,8 +89,20 @@ export default function Settings() {
     setError("");
     setPreferredPort(bPort);
     setRelayPort(rPort);
+    setRelayAllowedKinds(inputAllowedKinds);
+    setRelayAllowedPubkeys(inputAllowedPubkeys);
+    setRelayAllowedTaggedPubkeys(inputAllowedTaggedPubkeys);
     setApplyStatus("restart");
   };
+
+  const hasChanges =
+    inputPort !== (preferredPort?.toString() || blossomPort.toString()) ||
+    inputRelayPort !== relayPort.toString() ||
+    JSON.stringify(inputAllowedKinds) !== JSON.stringify(relayAllowedKinds) ||
+    JSON.stringify(inputAllowedPubkeys) !==
+      JSON.stringify(relayAllowedPubkeys) ||
+    JSON.stringify(inputAllowedTaggedPubkeys) !==
+      JSON.stringify(relayAllowedTaggedPubkeys);
 
   const handleRestart = async () => {
     try {
@@ -109,6 +125,7 @@ export default function Settings() {
       relay_allowed_kinds: relayAllowedKinds,
       relay_allowed_pubkeys: relayAllowedPubkeys,
       relay_allowed_tagged_pubkeys: relayAllowedTaggedPubkeys,
+      relay_port: relayPort,
     });
   };
 
@@ -125,6 +142,7 @@ export default function Settings() {
     relayAllowedKinds,
     relayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
+    relayPort,
   ]);
 
   const addRelay = () => {
@@ -175,10 +193,6 @@ export default function Settings() {
       }
     }
   };
-
-  const hasChanges =
-    inputPort !== (preferredPort?.toString() || blossomPort.toString()) ||
-    inputRelayPort !== relayPort.toString();
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-32">
@@ -320,9 +334,9 @@ export default function Settings() {
                     Allowed Event Kinds
                   </label>
                   <MultiInput
-                    values={relayAllowedKinds.map(String)}
+                    values={inputAllowedKinds.map(String)}
                     onChange={(vals) =>
-                      setRelayAllowedKinds(
+                      setInputAllowedKinds(
                         vals.map((v) => parseInt(v)).filter((v) => !isNaN(v)),
                       )
                     }
@@ -336,8 +350,8 @@ export default function Settings() {
                     Allowed Pubkeys
                   </label>
                   <MultiInput
-                    values={relayAllowedPubkeys}
-                    onChange={setRelayAllowedPubkeys}
+                    values={inputAllowedPubkeys}
+                    onChange={setInputAllowedPubkeys}
                     placeholder="npub... or hex"
                   />
                 </div>
@@ -347,8 +361,8 @@ export default function Settings() {
                     Allowed Tagged Pubkeys
                   </label>
                   <MultiInput
-                    values={relayAllowedTaggedPubkeys}
-                    onChange={setRelayAllowedTaggedPubkeys}
+                    values={inputAllowedTaggedPubkeys}
+                    onChange={setInputAllowedTaggedPubkeys}
                     placeholder="npub... or hex"
                   />
                 </div>
@@ -525,29 +539,21 @@ export default function Settings() {
                   preferredPort?.toString() || blossomPort.toString(),
                 );
                 setInputRelayPort(relayPort.toString());
+                setInputAllowedKinds(relayAllowedKinds);
+                setInputAllowedPubkeys(relayAllowedPubkeys);
+                setInputAllowedTaggedPubkeys(relayAllowedTaggedPubkeys);
                 setError("");
               }}
             >
               Discard
             </Button>
-            {applyStatus === "restart" ? (
-              <Button
-                size="sm"
-                onClick={handleRestart}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                <RotateCw className="h-4 w-4 mr-2" />
-                Restart
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                onClick={handleApplyPorts}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                Apply
-              </Button>
-            )}
+            <Button
+              size="sm"
+              onClick={handleApplyPorts}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Apply
+            </Button>
           </div>
         </div>
       )}

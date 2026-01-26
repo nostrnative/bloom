@@ -30,6 +30,11 @@ pub async fn toggle_relay(
     };
 
     if enabled {
+        // Stop relay first in case it's already running on another port
+        let _ = tauri_plugin_nostrnative::relay::stop_relay_core().await;
+        // Give it a moment to release the port
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
         let relay_dir = handle
             .path()
             .app_local_data_dir()
@@ -67,63 +72,88 @@ pub async fn update_sync_settings(
     settings: serde_json::Value,
     sync_settings_state: State<'_, SyncSettingsState>,
 ) -> Result<String, String> {
-    // Update the sync settings state
-    {
+    // Update the sync settings state and detect if relay settings changed
+    let relay_needs_restart = {
         let mut settings_guard = sync_settings_state.settings.write().await;
+        let mut changed = false;
+
         if let Some(enabled) = settings.get("enabled").and_then(|v| v.as_bool()) {
             settings_guard.enabled = enabled;
             tracing::info!("Sync settings updated: enabled={}", enabled);
         }
         if let Some(relay_enabled) = settings.get("relay_enabled").and_then(|v| v.as_bool()) {
-            settings_guard.relay_enabled = relay_enabled;
+            if settings_guard.relay_enabled != relay_enabled {
+                settings_guard.relay_enabled = relay_enabled;
+                changed = true;
+            }
         }
         if let Some(relay_port) = settings.get("relay_port").and_then(|v| v.as_u64()) {
-            settings_guard.relay_port = relay_port as u16;
+            let new_port = relay_port as u16;
+            if settings_guard.relay_port != new_port {
+                settings_guard.relay_port = new_port;
+                changed = true;
+            }
         }
         if let Some(kinds) = settings
             .get("relay_allowed_kinds")
             .and_then(|v| v.as_array())
         {
-            settings_guard.relay_allowed_kinds = kinds
+            let new_kinds: Vec<u16> = kinds
                 .iter()
                 .filter_map(|v| v.as_u64().map(|k| k as u16))
                 .collect();
+            if settings_guard.relay_allowed_kinds != new_kinds {
+                settings_guard.relay_allowed_kinds = new_kinds;
+                changed = true;
+            }
         }
         if let Some(pubkeys) = settings
             .get("relay_allowed_pubkeys")
             .and_then(|v| v.as_array())
         {
-            settings_guard.relay_allowed_pubkeys = pubkeys
+            let new_pubkeys: Vec<String> = pubkeys
                 .iter()
                 .filter_map(|v| v.as_str().map(|s| s.to_string()))
                 .collect();
+            if settings_guard.relay_allowed_pubkeys != new_pubkeys {
+                settings_guard.relay_allowed_pubkeys = new_pubkeys;
+                changed = true;
+            }
         }
         if let Some(tagged) = settings
             .get("relay_allowed_tagged_pubkeys")
             .and_then(|v| v.as_array())
         {
-            settings_guard.relay_allowed_tagged_pubkeys = tagged
+            let new_tagged: Vec<String> = tagged
                 .iter()
                 .filter_map(|v| v.as_str().map(|s| s.to_string()))
                 .collect();
+            if settings_guard.relay_allowed_tagged_pubkeys != new_tagged {
+                settings_guard.relay_allowed_tagged_pubkeys = new_tagged;
+                changed = true;
+            }
         }
-    }
-
-    // After updating state, if relay is enabled, restart it to apply new policies
-    let (enabled, port, pubkey, kinds, allowed_pubkeys, tagged_pubkeys) = {
-        let s = sync_settings_state.settings.read().await;
-        (
-            s.relay_enabled,
-            s.relay_port,
-            s.pubkey.clone(),
-            s.relay_allowed_kinds.clone(),
-            s.relay_allowed_pubkeys.clone(),
-            s.relay_allowed_tagged_pubkeys.clone(),
-        )
+        changed && settings_guard.relay_enabled
     };
 
-    if enabled {
+    // After updating state, if relay needs restart, apply new policies
+    if relay_needs_restart {
+        let (port, pubkey, kinds, allowed_pubkeys, tagged_pubkeys) = {
+            let s = sync_settings_state.settings.read().await;
+            (
+                s.relay_port,
+                s.pubkey.clone(),
+                s.relay_allowed_kinds.clone(),
+                s.relay_allowed_pubkeys.clone(),
+                s.relay_allowed_tagged_pubkeys.clone(),
+            )
+        };
+
+        tracing::info!("Restarting relay to apply new settings on port {}", port);
         let _ = tauri_plugin_nostrnative::relay::stop_relay_core().await;
+        // Give it a moment to release the port
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
         let relay_dir = handle
             .path()
             .app_local_data_dir()

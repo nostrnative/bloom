@@ -8,7 +8,48 @@ import { Button } from "@/components/ui/button";
 import { Settings as SettingsIcon, Server, Radio } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 
+import { nostrApi } from "@/lib/api";
+
 const queryClient = new QueryClient();
+
+function SyncManager() {
+  const {
+    pubkey,
+    relays,
+    localRelay,
+    syncEnabled,
+    syncIntervalMinutes,
+    onlyContacts,
+    lastSyncTimestamp,
+    interestedContactPubkeys,
+    relayAllowedKinds,
+    relayAllowedPubkeys,
+    relayAllowedTaggedPubkeys,
+    relayPort,
+  } = useAppStore();
+
+  useEffect(() => {
+    // Initial sync and relay start on app load
+    nostrApi.updateSyncSettings({
+      local_relay: localRelay,
+      remote_relays: relays,
+      pubkey,
+      interval_minutes: syncIntervalMinutes,
+      enabled: syncEnabled,
+      only_contacts: onlyContacts,
+      last_sync_timestamp: lastSyncTimestamp,
+      interested_contact_pubkeys: interestedContactPubkeys,
+      relay_allowed_kinds: relayAllowedKinds,
+      relay_allowed_pubkeys: relayAllowedPubkeys,
+      relay_allowed_tagged_pubkeys: relayAllowedTaggedPubkeys,
+      relay_port: relayPort,
+    });
+    // We only want to run this once on startup
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<"server" | "relay" | "settings">(
@@ -116,6 +157,7 @@ function AppContent() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <SyncManager />
       <AppContent />
     </QueryClientProvider>
   );

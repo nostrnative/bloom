@@ -8,7 +8,6 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
-use tauri::Manager;
 use tokio::sync::RwLock;
 
 #[derive(Clone)]
@@ -31,23 +30,6 @@ pub fn run_app() {
 
             tauri::async_runtime::spawn(async move {
                 http_server::start_server(handle.clone()).await;
-            });
-
-            let relay_handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                let relay_dir = relay_handle
-                    .path()
-                    .app_local_data_dir()
-                    .unwrap_or_else(|_| std::path::PathBuf::from("./relay"))
-                    .join("relay");
-
-                if std::fs::create_dir_all(&relay_dir).is_ok() {
-                    let db_path = relay_dir.to_string_lossy().to_string();
-                    // We can't easily access the state here before .manage is called,
-                    // but we can use the default port for now or wait for the frontend to trigger.
-                    // However, we should check if relay is enabled by default.
-                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(4870, &db_path, None, None).await;
-                }
             });
 
             Ok(())
