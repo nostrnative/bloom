@@ -155,3 +155,38 @@ pub async fn trigger_sync() -> Result<String, String> {
     tracing::info!("Manual sync triggered");
     Ok("Sync triggered".to_string())
 }
+
+#[tauri::command]
+pub async fn clear_blossom_content(handle: AppHandle) -> Result<String, String> {
+    let storage_dir = handle
+        .path()
+        .app_local_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("storage");
+
+    if storage_dir.exists() {
+        std::fs::remove_dir_all(&storage_dir).map_err(|e| e.to_string())?;
+        std::fs::create_dir_all(&storage_dir).map_err(|e| e.to_string())?;
+    }
+    tracing::info!("Blossom content cleared");
+    Ok("Blossom content cleared".to_string())
+}
+
+#[tauri::command]
+pub async fn clear_relay_content(handle: AppHandle) -> Result<String, String> {
+    let _ = tauri_plugin_nostrnative::relay::stop_relay_core().await;
+
+    let relay_dir = handle
+        .path()
+        .app_local_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("relay");
+
+    if relay_dir.exists() {
+        std::fs::remove_dir_all(&relay_dir).map_err(|e| e.to_string())?;
+        std::fs::create_dir_all(&relay_dir).map_err(|e| e.to_string())?;
+    }
+
+    tracing::info!("Relay content cleared");
+    Ok("Relay content cleared".to_string())
+}

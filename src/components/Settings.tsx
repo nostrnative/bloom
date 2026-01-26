@@ -11,6 +11,9 @@ import {
   ShieldCheck,
   RotateCw,
   RefreshCw,
+  Skull,
+  AlertTriangle,
+  Zap,
 } from "lucide-react";
 import {
   Card,
@@ -133,6 +136,44 @@ export default function Settings() {
 
   const removeRelay = (relay: string) => {
     setRelays(relays.filter((r) => r !== relay));
+  };
+
+  const handleClearBlossom = async () => {
+    if (confirm("Are you sure? This will delete ALL your uploaded files! 😱")) {
+      try {
+        await invoke("clear_blossom_content");
+        alert("Blossom content nuked! 💥");
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  const handleClearRelay = async () => {
+    if (confirm("Are you sure? This will delete ALL local relay events! 💀")) {
+      try {
+        await invoke("clear_relay_content");
+        alert("Relay content wiped! 🧹");
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  const handleClearBoth = async () => {
+    if (
+      confirm(
+        "EXTREME DANGER! This will wipe EVERYTHING. Files, events, all of it. Continue? 🔥",
+      )
+    ) {
+      try {
+        await invoke("clear_blossom_content");
+        await invoke("clear_relay_content");
+        alert("TOTAL ANNIHILATION COMPLETE. 🌌");
+      } catch (e) {
+        console.error(e);
+      }
+    }
   };
 
   const hasChanges =
@@ -365,6 +406,94 @@ export default function Settings() {
                   </Button>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Danger Zone Section */}
+      <section id="danger" className="space-y-4">
+        <div className="flex items-center gap-2 px-1">
+          <Skull className="w-5 h-5 text-red-600 animate-pulse" />
+          <h2 className="text-xl font-black text-red-600 tracking-tighter uppercase">
+            The Point of No Return
+          </h2>
+        </div>
+        <Card className="border-red-500/50 bg-red-50/30 dark:bg-red-950/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-shimmer" />
+          <CardHeader className="border-b border-red-100 dark:border-red-900/50 pb-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <CardTitle className="text-red-700 dark:text-red-400">
+                Danger Zone
+              </CardTitle>
+            </div>
+            <CardDescription className="text-red-600/70 dark:text-red-400/70 font-medium">
+              These actions are irreversible. Use with extreme caution (or if
+              you're feeling spicy).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-3 p-4 rounded-lg border border-red-200 dark:border-red-900/30 bg-white/50 dark:bg-zinc-900/50">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-bold flex items-center gap-2">
+                    <Server className="h-4 w-4" /> Blossom
+                  </span>
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    Deletes all stored blobs and descriptors from your local
+                    storage.
+                  </span>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full font-bold uppercase tracking-wider"
+                  onClick={handleClearBlossom}
+                >
+                  Nuke Blobs
+                </Button>
+              </div>
+
+              <div className="space-y-3 p-4 rounded-lg border border-red-200 dark:border-red-900/30 bg-white/50 dark:bg-zinc-900/50">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-bold flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4" /> Relay
+                  </span>
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    Wipes the entire local Nostr database. All local events will
+                    be lost.
+                  </span>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full font-bold uppercase tracking-wider"
+                  onClick={handleClearRelay}
+                >
+                  Wipe Relay
+                </Button>
+              </div>
+
+              <div className="space-y-3 p-4 rounded-lg border-2 border-red-600 bg-red-600/5 dark:bg-red-600/10">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-black flex items-center gap-2 text-red-600 uppercase italic">
+                    <Zap className="h-4 w-4 fill-current" /> Total Wipeout
+                  </span>
+                  <span className="text-xs text-red-700/80 dark:text-red-400/80 leading-relaxed font-bold">
+                    Everything goes. Blossom content, Relay events, and your
+                    dignity.
+                  </span>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                  onClick={handleClearBoth}
+                >
+                  Annihilate All
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -66,6 +66,8 @@ pub fn run_app() {
             commands::app::update_sync_settings,
             commands::app::trigger_sync,
             commands::app::toggle_relay,
+            commands::app::clear_blossom_content,
+            commands::app::clear_relay_content,
             restart_app_instance
         ])
         .run(tauri::generate_context!())
