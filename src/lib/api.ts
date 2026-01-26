@@ -224,4 +224,7 @@ export const nostrApi = {
   getRelayEventCounts: async (): Promise<Record<number, number>> => {
     return await nostrNative.getNostrEventCounts() as Record<number, number>;
   },
+  getRelayEvents: async (): Promise<NostrEvent[]> => {
+    return (await nostrNative.getNostrRelayEvents()) as unknown as NostrEvent[];
+  },
 };
