@@ -22,11 +22,9 @@ interface AppState {
   preferredPort: number | null;
   relayEnabled: boolean;
   relayPort: number;
-  relayAuthEnabled: boolean;
   relayAllowedKinds: number[];
   relayAllowedPubkeys: string[];
   relayAllowedTaggedPubkeys: string[];
-  relayUseSSL: boolean;
   relayHost: string;
   relayAutoBackup: boolean;
   relayAutoBackupFolder: string;
@@ -61,11 +59,9 @@ interface AppState {
   setPreferredPort: (port: number | null) => void;
   setRelayEnabled: (enabled: boolean) => void;
   setRelayPort: (port: number) => void;
-  setRelayAuthEnabled: (enabled: boolean) => void;
   setRelayAllowedKinds: (kinds: number[]) => void;
   setRelayAllowedPubkeys: (pubkeys: string[]) => void;
   setRelayAllowedTaggedPubkeys: (pubkeys: string[]) => void;
-  setRelayUseSSL: (enabled: boolean) => void;
   setRelayHost: (host: string) => void;
   setRelayAutoBackup: (enabled: boolean) => void;
   setRelayAutoBackupFolder: (folder: string) => void;
@@ -110,11 +106,9 @@ export const useAppStore = create<AppState>()(
       preferredPort: null,
       relayEnabled: true,
       relayPort: 4870,
-      relayAuthEnabled: false,
       relayAllowedKinds: [],
       relayAllowedPubkeys: [],
       relayAllowedTaggedPubkeys: [],
-      relayUseSSL: false,
       relayHost: "127.0.0.1",
       relayAutoBackup: false,
       relayAutoBackupFolder: "",
@@ -180,13 +174,11 @@ export const useAppStore = create<AppState>()(
       setPreferredPort: (port) => set({ preferredPort: port }),
       setRelayEnabled: (enabled) => set({ relayEnabled: enabled }),
       setRelayPort: (relayPort) => set({ relayPort }),
-      setRelayAuthEnabled: (relayAuthEnabled) => set({ relayAuthEnabled }),
       setRelayAllowedKinds: (relayAllowedKinds) => set({ relayAllowedKinds }),
       setRelayAllowedPubkeys: (relayAllowedPubkeys) =>
         set({ relayAllowedPubkeys }),
       setRelayAllowedTaggedPubkeys: (relayAllowedTaggedPubkeys) =>
         set({ relayAllowedTaggedPubkeys }),
-      setRelayUseSSL: (relayUseSSL) => set({ relayUseSSL }),
       setRelayHost: (relayHost) => set({ relayHost }),
       setRelayAutoBackup: (relayAutoBackup) => set({ relayAutoBackup }),
       setRelayAutoBackupFolder: (relayAutoBackupFolder) =>
