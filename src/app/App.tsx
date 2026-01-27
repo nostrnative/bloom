@@ -26,6 +26,7 @@ function SyncManager() {
     relayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
     relayPort,
+    relayEnabled,
   } = useAppStore();
 
   useEffect(() => {
@@ -39,6 +40,7 @@ function SyncManager() {
       only_contacts: onlyContacts,
       last_sync_timestamp: lastSyncTimestamp,
       interested_contact_pubkeys: interestedContactPubkeys,
+      relay_enabled: relayEnabled,
       relay_allowed_kinds: relayAllowedKinds,
       relay_allowed_pubkeys: relayAllowedPubkeys,
       relay_allowed_tagged_pubkeys: relayAllowedTaggedPubkeys,
