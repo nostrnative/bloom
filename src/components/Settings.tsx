@@ -50,6 +50,8 @@ export default function Settings() {
     setRelayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
     setRelayAllowedTaggedPubkeys,
+    relayEnableSearch,
+    setRelayEnableSearch,
   } = useAppStore();
 
   const [newRelay, setNewRelay] = useState("");
@@ -63,6 +65,7 @@ export default function Settings() {
   const [inputAllowedTaggedPubkeys, setInputAllowedTaggedPubkeys] = useState(
     relayAllowedTaggedPubkeys,
   );
+  const [inputEnableSearch, setInputEnableSearch] = useState(relayEnableSearch);
   const [error, setError] = useState("");
 
   const handleApplyPorts = () => {
@@ -88,11 +91,13 @@ export default function Settings() {
     setRelayAllowedKinds(inputAllowedKinds);
     setRelayAllowedPubkeys(inputAllowedPubkeys);
     setRelayAllowedTaggedPubkeys(inputAllowedTaggedPubkeys);
+    setRelayEnableSearch(inputEnableSearch);
   };
 
   const hasChanges =
     inputPort !== (preferredPort?.toString() || blossomPort.toString()) ||
     inputRelayPort !== relayPort.toString() ||
+    inputEnableSearch !== relayEnableSearch ||
     JSON.stringify(inputAllowedKinds) !== JSON.stringify(relayAllowedKinds) ||
     JSON.stringify(inputAllowedPubkeys) !==
       JSON.stringify(relayAllowedPubkeys) ||
@@ -112,6 +117,7 @@ export default function Settings() {
       relay_allowed_kinds: relayAllowedKinds,
       relay_allowed_pubkeys: relayAllowedPubkeys,
       relay_allowed_tagged_pubkeys: relayAllowedTaggedPubkeys,
+      relay_enable_search: relayEnableSearch,
       relay_port: relayPort,
     });
   };
@@ -129,6 +135,7 @@ export default function Settings() {
     relayAllowedKinds,
     relayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
+    relayEnableSearch,
     relayPort,
   ]);
 
@@ -306,6 +313,21 @@ export default function Settings() {
                 value={inputRelayPort}
                 onChange={(e) => setInputRelayPort(e.target.value)}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              />
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-6">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">NIP-50 Search (sqlite-vec)</span>
+                <span className="text-xs text-muted-foreground">
+                  Enable vector search for events
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={inputEnableSearch}
+                onChange={(e) => setInputEnableSearch(e.target.checked)}
+                className="h-5 w-5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
               />
             </div>
 
@@ -529,6 +551,7 @@ export default function Settings() {
                 setInputAllowedKinds(relayAllowedKinds);
                 setInputAllowedPubkeys(relayAllowedPubkeys);
                 setInputAllowedTaggedPubkeys(relayAllowedTaggedPubkeys);
+                setInputEnableSearch(relayEnableSearch);
                 setError("");
               }}
             >

@@ -25,6 +25,7 @@ interface AppState {
   relayAllowedKinds: number[];
   relayAllowedPubkeys: string[];
   relayAllowedTaggedPubkeys: string[];
+  relayEnableSearch: boolean;
   relayHost: string;
   relayAutoBackup: boolean;
   relayAutoBackupFolder: string;
@@ -62,6 +63,7 @@ interface AppState {
   setRelayAllowedKinds: (kinds: number[]) => void;
   setRelayAllowedPubkeys: (pubkeys: string[]) => void;
   setRelayAllowedTaggedPubkeys: (pubkeys: string[]) => void;
+  setRelayEnableSearch: (enabled: boolean) => void;
   setRelayHost: (host: string) => void;
   setRelayAutoBackup: (enabled: boolean) => void;
   setRelayAutoBackupFolder: (folder: string) => void;
@@ -109,6 +111,7 @@ export const useAppStore = create<AppState>()(
       relayAllowedKinds: [],
       relayAllowedPubkeys: [],
       relayAllowedTaggedPubkeys: [],
+      relayEnableSearch: false,
       relayHost: "127.0.0.1",
       relayAutoBackup: false,
       relayAutoBackupFolder: "",
@@ -179,6 +182,7 @@ export const useAppStore = create<AppState>()(
         set({ relayAllowedPubkeys }),
       setRelayAllowedTaggedPubkeys: (relayAllowedTaggedPubkeys) =>
         set({ relayAllowedTaggedPubkeys }),
+      setRelayEnableSearch: (relayEnableSearch) => set({ relayEnableSearch }),
       setRelayHost: (relayHost) => set({ relayHost }),
       setRelayAutoBackup: (relayAutoBackup) => set({ relayAutoBackup }),
       setRelayAutoBackupFolder: (relayAutoBackupFolder) =>

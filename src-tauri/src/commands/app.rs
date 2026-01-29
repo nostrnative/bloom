@@ -20,13 +20,14 @@ pub async fn start_relay_service(
     port: u16,
     sync_settings_state: State<'_, SyncSettingsState>,
 ) -> Result<u16, String> {
-    let (pubkey, kinds, allowed_pubkeys, tagged_pubkeys) = {
+    let (pubkey, kinds, allowed_pubkeys, tagged_pubkeys, enable_search) = {
         let settings_guard = sync_settings_state.settings.read().await;
         (
             settings_guard.pubkey.clone(),
             settings_guard.relay_allowed_kinds.clone(),
             settings_guard.relay_allowed_pubkeys.clone(),
             settings_guard.relay_allowed_tagged_pubkeys.clone(),
+            settings_guard.relay_enable_search,
         )
     };
 
@@ -43,6 +44,7 @@ pub async fn start_relay_service(
         relay_allowed_kinds: Some(kinds),
         relay_allowed_pubkeys: Some(allowed_pubkeys),
         relay_allowed_tagged_pubkeys: Some(tagged_pubkeys),
+        relay_enable_search: Some(enable_search),
     };
 
     // Use stop_relay_core as a way to ensure we can start fresh if needed,
@@ -132,6 +134,12 @@ pub async fn update_sync_settings(
                 changed = true;
             }
         }
+        if let Some(relay_enable_search) = settings.get("relay_enable_search").and_then(|v| v.as_bool()) {
+            if settings_guard.relay_enable_search != relay_enable_search {
+                settings_guard.relay_enable_search = relay_enable_search;
+                changed = true;
+            }
+        }
         if let Some(kinds) = settings
             .get("relay_allowed_kinds")
             .and_then(|v| v.as_array())
@@ -176,7 +184,7 @@ pub async fn update_sync_settings(
 
     // After updating state, if relay needs restart, apply new policies
     if relay_needs_restart {
-        let (port, pubkey, kinds, allowed_pubkeys, tagged_pubkeys) = {
+        let (port, pubkey, kinds, allowed_pubkeys, tagged_pubkeys, enable_search) = {
             let s = sync_settings_state.settings.read().await;
             (
                 s.relay_port,
@@ -184,6 +192,7 @@ pub async fn update_sync_settings(
                 s.relay_allowed_kinds.clone(),
                 s.relay_allowed_pubkeys.clone(),
                 s.relay_allowed_tagged_pubkeys.clone(),
+                s.relay_enable_search,
             )
         };
 
@@ -203,6 +212,7 @@ pub async fn update_sync_settings(
             relay_allowed_kinds: Some(kinds),
             relay_allowed_pubkeys: Some(allowed_pubkeys),
             relay_allowed_tagged_pubkeys: Some(tagged_pubkeys),
+            relay_enable_search: Some(enable_search),
         };
 
         let _ = tauri_plugin_nostrnative::relay::start_relay_core(

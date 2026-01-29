@@ -31,6 +31,7 @@ function SyncManager() {
     relayAllowedKinds,
     relayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
+    relayEnableSearch,
     relayPort,
     relayEnabled,
   } = useAppStore();
@@ -50,6 +51,7 @@ function SyncManager() {
       relay_allowed_kinds: relayAllowedKinds,
       relay_allowed_pubkeys: relayAllowedPubkeys,
       relay_allowed_tagged_pubkeys: relayAllowedTaggedPubkeys,
+      relay_enable_search: relayEnableSearch,
       relay_port: relayPort,
     });
   }, [
@@ -64,6 +66,7 @@ function SyncManager() {
     relayAllowedKinds,
     relayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
+    relayEnableSearch,
     relayPort,
     relayEnabled,
   ]);

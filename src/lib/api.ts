@@ -155,6 +155,7 @@ export const nostrApi = {
     relay_allowed_kinds?: number[];
     relay_allowed_pubkeys?: string[];
     relay_allowed_tagged_pubkeys?: string[];
+    relay_enable_search?: boolean;
     relay_port?: number;
   }): Promise<void> => {
     return await invoke('update_sync_settings', { settings });
