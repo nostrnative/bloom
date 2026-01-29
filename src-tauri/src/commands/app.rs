@@ -10,17 +10,18 @@ pub async fn update_reminder_settings(settings: serde_json::Value) -> Result<Str
 }
 
 #[tauri::command]
-pub async fn toggle_relay(
+pub async fn start_blossom_server(handle: AppHandle, port: u16) -> Result<u16, String> {
+    crate::http_server::start_server(handle, port).await
+}
+
+#[tauri::command]
+pub async fn start_relay_service(
     handle: AppHandle,
-    enabled: bool,
     port: u16,
     sync_settings_state: State<'_, SyncSettingsState>,
-) -> Result<String, String> {
+) -> Result<u16, String> {
     let (pubkey, kinds, allowed_pubkeys, tagged_pubkeys) = {
-        let mut settings_guard = sync_settings_state.settings.write().await;
-        settings_guard.relay_enabled = enabled;
-        settings_guard.relay_port = port;
-
+        let settings_guard = sync_settings_state.settings.read().await;
         (
             settings_guard.pubkey.clone(),
             settings_guard.relay_allowed_kinds.clone(),
@@ -29,37 +30,74 @@ pub async fn toggle_relay(
         )
     };
 
+    let relay_dir = handle
+        .path()
+        .app_local_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("relay");
+
+    let _ = std::fs::create_dir_all(&relay_dir);
+    let db_path = relay_dir.to_string_lossy().to_string();
+
+    let settings = RelaySettings {
+        relay_allowed_kinds: Some(kinds),
+        relay_allowed_pubkeys: Some(allowed_pubkeys),
+        relay_allowed_tagged_pubkeys: Some(tagged_pubkeys),
+    };
+
+    // Use stop_relay_core as a way to ensure we can start fresh if needed,
+    // or just let start_relay_core handle its internal state.
+    // If start_relay_core fails with "already running", we'll treat it as success.
+
+    // Proactively stop the relay to clear any existing lock or handle.
+    let _ = tauri_plugin_nostrnative::relay::stop_relay_core().await;
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+    match tauri_plugin_nostrnative::relay::start_relay_core(
+        port,
+        &db_path,
+        pubkey.as_deref(),
+        Some(settings),
+    )
+    .await
+    {
+        Ok(_) => {
+            let mut settings_guard = sync_settings_state.settings.write().await;
+            settings_guard.relay_port = port;
+            settings_guard.relay_enabled = true;
+            Ok(port)
+        }
+        Err(e) => {
+            tracing::error!("Relay start error: {}", e);
+            let err_msg = e.to_lowercase();
+            // EXPLICIT check for "address already in use" and "os error 48"
+            if err_msg.contains("already running")
+                || err_msg.contains("address already in use")
+                || err_msg.contains("addrinuse")
+                || err_msg.contains("os error 48")
+                || err_msg.contains("code: 48")
+            {
+                Err("PORT_IN_USE".to_string())
+            } else {
+                Err(e)
+            }
+        }
+    }
+}
+
+#[tauri::command]
+pub async fn toggle_relay(
+    handle: AppHandle,
+    enabled: bool,
+    port: u16,
+    sync_settings_state: State<'_, SyncSettingsState>,
+) -> Result<String, String> {
     if enabled {
-        // Stop relay first in case it's already running on another port
-        let _ = tauri_plugin_nostrnative::relay::stop_relay_core().await;
-        // Give it a moment to release the port
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-        let relay_dir = handle
-            .path()
-            .app_local_data_dir()
-            .map_err(|e| e.to_string())?
-            .join("relay");
-
-        let _ = std::fs::create_dir_all(&relay_dir);
-        let db_path = relay_dir.to_string_lossy().to_string();
-
-        let settings = RelaySettings {
-            relay_allowed_kinds: Some(kinds),
-            relay_allowed_pubkeys: Some(allowed_pubkeys),
-            relay_allowed_tagged_pubkeys: Some(tagged_pubkeys),
-        };
-
-        tracing::info!("Starting relay on port {}", port);
-        let _ = tauri_plugin_nostrnative::relay::start_relay_core(
-            port,
-            &db_path,
-            pubkey.as_deref(),
-            Some(settings),
-        )
-        .await;
+        let _ = start_relay_service(handle, port, sync_settings_state).await?;
         Ok("Relay started".to_string())
     } else {
+        let mut settings_guard = sync_settings_state.settings.write().await;
+        settings_guard.relay_enabled = false;
         tracing::info!("Stopping relay");
         let _ = tauri_plugin_nostrnative::relay::stop_relay_core().await;
         Ok("Relay stopped".to_string())

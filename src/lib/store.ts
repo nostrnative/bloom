@@ -105,7 +105,7 @@ export const useAppStore = create<AppState>()(
       blossomPort: 24242,
       preferredPort: null,
       relayEnabled: true,
-      relayPort: 4870,
+      relayPort: 4869,
       relayAllowedKinds: [],
       relayAllowedPubkeys: [],
       relayAllowedTaggedPubkeys: [],

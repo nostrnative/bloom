@@ -8,7 +8,6 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
-use tauri::Manager;
 use tokio::sync::RwLock;
 
 #[derive(Clone)]
@@ -26,44 +25,10 @@ pub fn run_app() {
     init_logging();
 
     tauri::Builder::default()
-        .setup(|app| {
-            let handle = app.handle();
-            let sync_settings_state = handle.state::<SyncSettingsState>();
-            let settings_clone = sync_settings_state.inner().clone();
-
-            let handle_for_server = handle.clone();
-            tauri::async_runtime::spawn(async move {
-                http_server::start_server(handle_for_server).await;
-            });
-
-            let handle_for_relay = handle.clone();
-            tauri::async_runtime::spawn(async move {
-                let settings = settings_clone.settings.read().await;
-                if settings.relay_enabled {
-                    let relay_dir = handle_for_relay
-                        .path()
-                        .app_local_data_dir()
-                        .unwrap_or_default()
-                        .join("relay");
-                    let _ = std::fs::create_dir_all(&relay_dir);
-                    let db_path = relay_dir.to_string_lossy().to_string();
-
-                    let relay_settings = tauri_plugin_nostrnative::relay::RelaySettings {
-                        relay_allowed_kinds: Some(settings.relay_allowed_kinds.clone()),
-                        relay_allowed_pubkeys: Some(settings.relay_allowed_pubkeys.clone()),
-                        relay_allowed_tagged_pubkeys: Some(settings.relay_allowed_tagged_pubkeys.clone()),
-                    };
-
-                    let _ = tauri_plugin_nostrnative::relay::start_relay_core(
-                        settings.relay_port,
-                        &db_path,
-                        settings.pubkey.as_deref(),
-                        Some(relay_settings),
-                    )
-                    .await;
-                }
-            });
-
+        .setup(|_app| {
+            // State is already managed via .manage() called later, 
+            // but we need it here if we were to start services immediately.
+            // However, we are moving service start to the frontend via commands.
             Ok(())
         })
         .manage(SyncSettingsState {
@@ -76,6 +41,8 @@ pub fn run_app() {
         .plugin(tauri_plugin_nostrnative::init())
         .invoke_handler(tauri::generate_handler![
             http_server::get_server_port,
+            commands::app::start_blossom_server,
+            commands::app::start_relay_service,
             commands::app::update_reminder_settings,
             commands::app::update_sync_settings,
             commands::app::trigger_sync,

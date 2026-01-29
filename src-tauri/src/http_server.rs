@@ -102,7 +102,12 @@ pub fn create_router(state: AppState) -> Router {
         .with_state(state)
 }
 
-pub async fn start_server(handle: AppHandle) {
+pub async fn start_server(handle: AppHandle, port: u16) -> Result<u16, String> {
+    if ACTIVE_PORT.load(Ordering::SeqCst) != 0 {
+        tracing::info!("Blossom server is already running.");
+        return Ok(ACTIVE_PORT.load(Ordering::SeqCst));
+    }
+
     let storage_dir = handle
         .path()
         .app_local_data_dir()
@@ -111,37 +116,18 @@ pub async fn start_server(handle: AppHandle) {
     let storage_dir = storage_dir.join("blobs");
     std::fs::create_dir_all(&storage_dir).expect("Failed to create storage directory");
 
-    let ports = [24242, 3838];
-    let mut listener = None;
-    let mut active_port = 0;
-
-    for port in ports {
-        match tokio::net::TcpListener::bind(format!("127.0.0.1:{}", port)).await {
-            Ok(l) => {
-                listener = Some(l);
-                active_port = port;
-                break;
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
-                tracing::warn!("Port {} in use, trying next...", port);
-                continue;
-            }
-            Err(e) => {
-                tracing::error!("Failed to bind to port {}: {}", port, e);
-            }
+    let listener = match tokio::net::TcpListener::bind(format!("127.0.0.1:{}", port)).await {
+        Ok(l) => l,
+        Err(e) if e.kind() == std::io::ErrorKind::AddrInUse || e.raw_os_error() == Some(48) => {
+            return Err("PORT_IN_USE".to_string());
         }
-    }
-
-    let listener = match listener {
-        Some(l) => l,
-        None => {
-            tracing::error!("Could not bind to any port (24242, 3838).");
-            return;
+        Err(e) => {
+            return Err(format!("Failed to bind to port {}: {}", port, e));
         }
     };
 
-    ACTIVE_PORT.store(active_port, Ordering::SeqCst);
-    let server_url = format!("http://127.0.0.1:{}", active_port);
+    ACTIVE_PORT.store(port, Ordering::SeqCst);
+    let server_url = format!("http://127.0.0.1:{}", port);
     let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
 
     let state = AppState {
@@ -153,9 +139,13 @@ pub async fn start_server(handle: AppHandle) {
 
     tracing::info!("Blossom server listening on {}", server_url);
 
-    if let Err(e) = axum::serve(listener, app).await {
-        tracing::error!("Failed to start server: {}", e);
-    }
+    tauri::async_runtime::spawn(async move {
+        if let Err(e) = axum::serve(listener, app).await {
+            tracing::error!("Failed to start server: {}", e);
+        }
+    });
+
+    Ok(port)
 }
 
 async fn health_check() -> impl IntoResponse {
