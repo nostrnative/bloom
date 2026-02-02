@@ -15,7 +15,7 @@ static RUNTIME: Lazy<Mutex<Option<Runtime>>> = Lazy::new(|| Mutex::new(None));
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
+pub extern "C" fn Java_com_bloom_server_BlossomService_startRustServer(
     mut env: JNIEnv,
     _class: JClass,
     port: jint,
@@ -97,7 +97,7 @@ pub extern "C" fn Java_com_blossom_server_BlossomService_startRustServer(
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_blossom_server_BlossomService_stopRustServer(
+pub extern "C" fn Java_com_bloom_server_BlossomService_stopRustServer(
     _env: JNIEnv,
     _class: JClass,
 ) {
