@@ -15,7 +15,6 @@ import {
   Trash2,
   Download,
   Loader2,
-  RefreshCw,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,7 +31,6 @@ export default function BlossomServer() {
   const { pubkey, blossomPort: port } = useAppStore();
   const queryClient = useQueryClient();
   const [serverRunning, setServerRunning] = useState(false);
-  const [lastError, setLastError] = useState<string | null>(null);
 
   const [uploadStats, setUploadStats] = useState<{
     total: number;
@@ -50,16 +48,8 @@ export default function BlossomServer() {
         headers: { Accept: "application/json" },
       });
       setServerRunning(response.ok);
-      if (response.ok) setLastError(null);
-      else
-        setLastError(
-          `Server returned status: ${response.status} ${response.statusText}`,
-        );
     } catch (error) {
       setServerRunning(false);
-      setLastError(
-        `Fetch failed: ${error instanceof Error ? error.message : String(error)}. Try checking if the server is allowed to run on port ${port}.`,
-      );
     }
   };
 
