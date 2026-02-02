@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "Blossom Server",
+  "productName": "Bloom",
   "version": "0.1.0",
-  "identifier": "com.blossom.server",
+  "identifier": "com.bloom.server",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -13,7 +13,7 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "Blossom Server",
+        "title": "Bloom",
         "label": "main",
         "width": 1200,
         "height": 800
