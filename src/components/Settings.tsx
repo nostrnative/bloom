@@ -316,18 +316,19 @@ export default function Settings() {
               />
             </div>
 
-            <div className="flex items-center justify-between border-t pt-6">
+            <div className="flex items-center justify-between border-t pt-6 opacity-60">
               <div className="flex flex-col">
-                <span className="text-sm font-medium">NIP-50 Search (sqlite-vec)</span>
+                <span className="text-sm font-medium">NIP-50 Search (sqlite-vec) <span className="text-[10px] bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-500 font-bold ml-1">COMING SOON</span></span>
                 <span className="text-xs text-muted-foreground">
                   Enable vector search for events
                 </span>
               </div>
               <input
                 type="checkbox"
+                disabled
                 checked={inputEnableSearch}
                 onChange={(e) => setInputEnableSearch(e.target.checked)}
-                className="h-5 w-5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                className="h-5 w-5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-not-allowed"
               />
             </div>
 
