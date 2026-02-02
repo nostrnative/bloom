@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">Blossom Server</string>
-    <string name="main_activity_title">Blossom Server</string>
-    <string name="notification_title">Blossom &amp; Relay Server</string>
-    <string name="notification_message">Blossom and Nostr relay are running in the background</string>
+    <string name="app_name">Bloom</string>
+    <string name="main_activity_title">Bloom</string>
 </resources>
