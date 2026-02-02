@@ -226,32 +226,6 @@ export default function BlossomServer() {
         </Card>
       </div>
 
-      {lastError && (
-        <Card className="bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-red-800 dark:text-red-400">
-              Connection Debug Info
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={checkServer}
-              className="h-8 px-2 text-red-700 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/20"
-            >
-              <RefreshCw className="w-4 h-4 mr-1" />
-              Retry
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs font-mono text-red-700 dark:text-red-300 break-all">
-              URL: {serverUrl}
-              <br />
-              Error: {lastError}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">

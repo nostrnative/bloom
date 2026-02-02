@@ -82,6 +82,7 @@ function AppContent() {
     theme,
     blossomPort,
     setBlossomPort,
+    preferredPort,
     relayPort,
     setRelayPort,
     relayEnabled,
@@ -149,7 +150,7 @@ function AppContent() {
       if (!mounted) return;
 
       try {
-        const bSuccess = await startBlossom(blossomPort || 24242);
+        const bSuccess = await startBlossom(preferredPort || blossomPort || 24242);
         if (mounted && bSuccess && relayEnabled) {
           await startRelay(relayPort || 4869);
         }
@@ -161,7 +162,7 @@ function AppContent() {
     return () => {
       mounted = false;
     };
-  }, [blossomPort, relayPort, relayEnabled, startBlossom, startRelay]);
+  }, [preferredPort, relayPort, relayEnabled, startBlossom, startRelay]);
 
   useEffect(() => {
     const root = window.document.documentElement;

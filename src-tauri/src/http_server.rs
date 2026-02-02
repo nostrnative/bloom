@@ -29,8 +29,10 @@ use crate::storage::{Storage, StorageManager};
 use tauri::Manager;
 
 use std::sync::atomic::{AtomicU16, Ordering};
+use tokio::sync::broadcast;
 
 static ACTIVE_PORT: AtomicU16 = AtomicU16::new(0);
+static SHUTDOWN_TX: RwLock<Option<broadcast::Sender<()>>> = RwLock::const_new(None);
 
 #[derive(Clone)]
 pub struct AppState {
@@ -103,9 +105,21 @@ pub fn create_router(state: AppState) -> Router {
 }
 
 pub async fn start_server(handle: AppHandle, port: u16) -> Result<u16, String> {
-    if ACTIVE_PORT.load(Ordering::SeqCst) != 0 {
-        tracing::info!("Blossom server is already running.");
-        return Ok(ACTIVE_PORT.load(Ordering::SeqCst));
+    let current_port = ACTIVE_PORT.load(Ordering::SeqCst);
+    if current_port != 0 && current_port == port {
+        tracing::info!("Blossom server is already running on port {}.", port);
+        return Ok(port);
+    }
+
+    if current_port != 0 {
+        tracing::info!("Restarting Blossom server from port {} to {}", current_port, port);
+        // Signal shutdown to the existing server
+        let mut tx_guard = SHUTDOWN_TX.write().await;
+        if let Some(tx) = tx_guard.take() {
+            let _ = tx.send(());
+            // Give it a small moment to shut down
+            tokio::time::sleep(Duration::from_millis(200)).await;
+        }
     }
 
     let storage_dir = handle
@@ -126,6 +140,12 @@ pub async fn start_server(handle: AppHandle, port: u16) -> Result<u16, String> {
         }
     };
 
+    let (tx, mut rx) = broadcast::channel(1);
+    {
+        let mut tx_guard = SHUTDOWN_TX.write().await;
+        *tx_guard = Some(tx);
+    }
+
     ACTIVE_PORT.store(port, Ordering::SeqCst);
     let server_url = format!("http://127.0.0.1:{}", port);
     let storage = Arc::new(StorageManager::new(storage_dir, server_url.clone()));
@@ -140,7 +160,12 @@ pub async fn start_server(handle: AppHandle, port: u16) -> Result<u16, String> {
     tracing::info!("Blossom server listening on {}", server_url);
 
     tauri::async_runtime::spawn(async move {
-        if let Err(e) = axum::serve(listener, app).await {
+        let server = axum::serve(listener, app).with_graceful_shutdown(async move {
+            let _ = rx.recv().await;
+            tracing::info!("Blossom server shutting down...");
+        });
+
+        if let Err(e) = server.await {
             tracing::error!("Failed to start server: {}", e);
         }
     });

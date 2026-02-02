@@ -44,6 +44,7 @@ export default function Settings() {
     relayPort,
     setRelayPort,
     blossomPort,
+    setBlossomPort,
     relayAllowedKinds,
     setRelayAllowedKinds,
     relayAllowedPubkeys,
@@ -68,7 +69,7 @@ export default function Settings() {
   const [inputEnableSearch, setInputEnableSearch] = useState(relayEnableSearch);
   const [error, setError] = useState("");
 
-  const handleApplyPorts = () => {
+  const handleApplyPorts = async () => {
     const bPort = parseInt(inputPort);
     const rPort = parseInt(inputRelayPort);
 
@@ -86,8 +87,25 @@ export default function Settings() {
     }
 
     setError("");
+    const blossomChanged = bPort !== blossomPort;
+    const relayChanged = rPort !== relayPort;
+
     setPreferredPort(bPort);
+    setBlossomPort(bPort);
     setRelayPort(rPort);
+
+    // Enforce port update immediately via invoke only if they changed
+    try {
+      if (blossomChanged) {
+        await invoke("start_blossom_server", { port: bPort });
+      }
+      if (relayChanged && relayEnabled) {
+        await invoke("start_relay_service", { port: rPort });
+      }
+    } catch (err) {
+      console.error("Failed to apply port changes:", err);
+    }
+
     setRelayAllowedKinds(inputAllowedKinds);
     setRelayAllowedPubkeys(inputAllowedPubkeys);
     setRelayAllowedTaggedPubkeys(inputAllowedTaggedPubkeys);
@@ -318,7 +336,12 @@ export default function Settings() {
 
             <div className="flex items-center justify-between border-t pt-6 opacity-60">
               <div className="flex flex-col">
-                <span className="text-sm font-medium">NIP-50 Search (sqlite-vec) <span className="text-[10px] bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-500 font-bold ml-1">COMING SOON</span></span>
+                <span className="text-sm font-medium">
+                  NIP-50 Search (sqlite-vec){" "}
+                  <span className="text-[10px] bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-500 font-bold ml-1">
+                    COMING SOON
+                  </span>
+                </span>
                 <span className="text-xs text-muted-foreground">
                   Enable vector search for events
                 </span>
