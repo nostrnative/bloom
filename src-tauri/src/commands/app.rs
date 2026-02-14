@@ -44,7 +44,6 @@ pub async fn start_relay_service(
         relay_allowed_kinds: Some(kinds),
         relay_allowed_pubkeys: Some(allowed_pubkeys),
         relay_allowed_tagged_pubkeys: Some(tagged_pubkeys),
-        relay_enable_search: Some(enable_search),
     };
 
     // Use stop_relay_core as a way to ensure we can start fresh if needed,
@@ -212,7 +211,6 @@ pub async fn update_sync_settings(
             relay_allowed_kinds: Some(kinds),
             relay_allowed_pubkeys: Some(allowed_pubkeys),
             relay_allowed_tagged_pubkeys: Some(tagged_pubkeys),
-            relay_enable_search: Some(enable_search),
         };
 
         let _ = tauri_plugin_nostrnative::relay::start_relay_core(

@@ -5961,10 +5961,10 @@
           "markdownDescription": "Enables the add_note_to_notebook command without any pre-configured scope."
         },
         {
-          "description": "Allows deleting blobs",
+          "description": "Enables the blossom_delete command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:allow-blossom-delete",
-          "markdownDescription": "Allows deleting blobs"
+          "markdownDescription": "Enables the blossom_delete command without any pre-configured scope."
         },
         {
           "description": "Enables the blossom_get_blob command without any pre-configured scope.",
@@ -5973,10 +5973,10 @@
           "markdownDescription": "Enables the blossom_get_blob command without any pre-configured scope."
         },
         {
-          "description": "Allows listing blobs",
+          "description": "Enables the blossom_list command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:allow-blossom-list",
-          "markdownDescription": "Allows listing blobs"
+          "markdownDescription": "Enables the blossom_list command without any pre-configured scope."
         },
         {
           "description": "Enables the blossom_mirror command without any pre-configured scope.",
@@ -6091,6 +6091,12 @@
           "type": "string",
           "const": "nostrnative:allow-fetch-bookmarks",
           "markdownDescription": "Enables the fetch_bookmarks command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_calendar_contact_lists command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-fetch-calendar-contact-lists",
+          "markdownDescription": "Enables the fetch_calendar_contact_lists command without any pre-configured scope."
         },
         {
           "description": "Enables the fetch_calendar_events command without any pre-configured scope.",
@@ -6219,6 +6225,18 @@
           "markdownDescription": "Enables the get_nostr_relay_status command"
         },
         {
+          "description": "Enables the hex_to_npub command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-hex-to-npub",
+          "markdownDescription": "Enables the hex_to_npub command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the npub_to_hex command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-npub-to-hex",
+          "markdownDescription": "Enables the npub_to_hex command without any pre-configured scope."
+        },
+        {
           "description": "Enables the parse_pubkey command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:allow-parse-pubkey",
@@ -6235,6 +6253,12 @@
           "type": "string",
           "const": "nostrnative:allow-publish-calendar",
           "markdownDescription": "Enables the publish_calendar command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the publish_calendar_contact_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:allow-publish-calendar-contact-list",
+          "markdownDescription": "Enables the publish_calendar_contact_list command without any pre-configured scope."
         },
         {
           "description": "Enables the publish_calendar_event command without any pre-configured scope.",
@@ -6357,10 +6381,22 @@
           "markdownDescription": "Denies the add_note_to_notebook command without any pre-configured scope."
         },
         {
+          "description": "Denies the blossom_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-blossom-delete",
+          "markdownDescription": "Denies the blossom_delete command without any pre-configured scope."
+        },
+        {
           "description": "Denies the blossom_get_blob command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:deny-blossom-get-blob",
           "markdownDescription": "Denies the blossom_get_blob command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the blossom_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-blossom-list",
+          "markdownDescription": "Denies the blossom_list command without any pre-configured scope."
         },
         {
           "description": "Denies the blossom_mirror command without any pre-configured scope.",
@@ -6465,6 +6501,12 @@
           "markdownDescription": "Denies the fetch_bookmarks command without any pre-configured scope."
         },
         {
+          "description": "Denies the fetch_calendar_contact_lists command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-fetch-calendar-contact-lists",
+          "markdownDescription": "Denies the fetch_calendar_contact_lists command without any pre-configured scope."
+        },
+        {
           "description": "Denies the fetch_calendar_events command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:deny-fetch-calendar-events",
@@ -6567,6 +6609,18 @@
           "markdownDescription": "Denies the generate_new_nsec command without any pre-configured scope."
         },
         {
+          "description": "Denies the hex_to_npub command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-hex-to-npub",
+          "markdownDescription": "Denies the hex_to_npub command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the npub_to_hex command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-npub-to-hex",
+          "markdownDescription": "Denies the npub_to_hex command without any pre-configured scope."
+        },
+        {
           "description": "Denies the parse_pubkey command without any pre-configured scope.",
           "type": "string",
           "const": "nostrnative:deny-parse-pubkey",
@@ -6583,6 +6637,12 @@
           "type": "string",
           "const": "nostrnative:deny-publish-calendar",
           "markdownDescription": "Denies the publish_calendar command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the publish_calendar_contact_list command without any pre-configured scope.",
+          "type": "string",
+          "const": "nostrnative:deny-publish-calendar-contact-list",
+          "markdownDescription": "Denies the publish_calendar_contact_list command without any pre-configured scope."
         },
         {
           "description": "Denies the publish_calendar_event command without any pre-configured scope.",

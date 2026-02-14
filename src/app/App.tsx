@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Routes, Route, NavLink } from "react-router-dom";
 import { useAppStore } from "@/lib/store";
 import Settings from "@/components/Settings";
 import BlossomServer from "@/components/BlossomServer";
@@ -75,9 +76,6 @@ function SyncManager() {
 }
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState<
-    "server" | "relay" | "settings"
-  >("server");
   const {
     theme,
     blossomPort,
@@ -197,27 +195,27 @@ function AppContent() {
             />
           </div>
           <div className="flex flex-1 justify-around items-center md:flex-col md:space-y-4 md:justify-start">
-            <Button
-              variant={currentPage === "server" ? "default" : "ghost"}
-              size="icon"
-              onClick={() => setCurrentPage("server")}
-            >
-              <Server className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={currentPage === "relay" ? "default" : "ghost"}
-              size="icon"
-              onClick={() => setCurrentPage("relay")}
-            >
-              <Radio className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={currentPage === "settings" ? "default" : "ghost"}
-              size="icon"
-              onClick={() => setCurrentPage("settings")}
-            >
-              <SettingsIcon className="h-5 w-5" />
-            </Button>
+            <NavLink to="/">
+              {({ isActive }) => (
+                <Button variant={isActive ? "default" : "ghost"} size="icon">
+                  <Server className="h-5 w-5" />
+                </Button>
+              )}
+            </NavLink>
+            <NavLink to="/relay">
+              {({ isActive }) => (
+                <Button variant={isActive ? "default" : "ghost"} size="icon">
+                  <Radio className="h-5 w-5" />
+                </Button>
+              )}
+            </NavLink>
+            <NavLink to="/settings">
+              {({ isActive }) => (
+                <Button variant={isActive ? "default" : "ghost"} size="icon">
+                  <SettingsIcon className="h-5 w-5" />
+                </Button>
+              )}
+            </NavLink>
           </div>
         </nav>
         <div className="flex-1 overflow-auto p-4 md:p-6 relative">
@@ -235,16 +233,19 @@ function AppContent() {
               </Button>
             </div>
           )}
-          {currentPage === "server" ? (
-            <BlossomServer />
-          ) : currentPage === "relay" ? (
-            <NostrRelay />
-          ) : (
-            <div className="max-w-2xl mx-auto">
-              <h1 className="text-3xl font-bold mb-6">Settings</h1>
-              <Settings />
-            </div>
-          )}
+          <Routes>
+            <Route path="/" element={<BlossomServer />} />
+            <Route path="/relay" element={<NostrRelay />} />
+            <Route
+              path="/settings"
+              element={
+                <div className="max-w-2xl mx-auto">
+                  <h1 className="text-3xl font-bold mb-6">Settings</h1>
+                  <Settings />
+                </div>
+              }
+            />
+          </Routes>
         </div>
       </div>
     </main>

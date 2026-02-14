@@ -25,12 +25,6 @@ pub fn run_app() {
     init_logging();
 
     tauri::Builder::default()
-        .setup(|_app| {
-            // State is already managed via .manage() called later, 
-            // but we need it here if we were to start services immediately.
-            // However, we are moving service start to the frontend via commands.
-            Ok(())
-        })
         .manage(SyncSettingsState {
             settings: Arc::new(RwLock::new(SyncSettings::default())),
         })
