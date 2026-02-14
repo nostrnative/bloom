@@ -33,21 +33,19 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workdir: blossom/src-tauri
+          workdir: src-tauri
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: 'npm'
-          cache-dependency-path: blossom/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install frontend dependencies
-        working-directory: blossom
         run: npm install
 
       - name: Run quality checks
-        working-directory: blossom
         run: npm run check
 
       - name: Build the app
@@ -55,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: blossom
+          projectPath: .
           tagName: v__VERSION__
           releaseName: 'Bloom v__VERSION__'
           releaseBody: 'See the assets below to download and install this version.'
