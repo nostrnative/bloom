@@ -12,10 +12,8 @@ jobs:
     name: Quality Checks
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout blossom
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: blossom
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable

@@ -22,20 +22,8 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout blossom
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: blossom
-
-      - name: Checkout nostrnative
-        uses: actions/checkout@v4
-        with:
-          # Assumes nostrnative is in the same organization/user
-          repository: ${{ github.repository_owner }}/nostrnative
-          path: nostrnative
-          # If nostrnative is private, you will need to provide a Personal Access Token (PAT)
-          # via secrets.GH_PAT. Otherwise, GITHUB_TOKEN might work if it's the same owner.
-          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
