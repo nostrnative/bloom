@@ -6,3 +6,4 @@ dist
 *.properties
 releases
 src-tauri/.DS_Store
+docs
