@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout blossom
+        uses: actions/checkout@v4
+        with:
+          path: blossom
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workdir: blossom/src-tauri
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: "npm"
+          cache-dependency-path: blossom/package-lock.json
+
+      - name: Install dependencies
+        working-directory: blossom
+        run: npm install
+
+      - name: Run checks
+        working-directory: blossom
+        run: npm run check
