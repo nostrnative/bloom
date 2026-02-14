@@ -11,7 +11,9 @@
     "android": "tauri android",
     "ios": "tauri ios",
     "lint": "eslint .",
-    "check": "npm run lint && tsc -b && cd src-tauri && cargo fmt -- --check && cargo clippy -- -D warnings && cargo test",
+    "format-check": "prettier --check --ignore-path .gitignore .",
+    "format-fix": "prettier --write --ignore-path .gitignore .",
+    "check": "npm run format-check && npm run lint && tsc -b && cd src-tauri && cargo fmt -- --check && cargo clippy -- -D warnings && cargo test",
     "full-build": "./scripts/build.sh"
   },
   "dependencies": {
@@ -50,6 +52,8 @@
     "eslint-plugin-react-refresh": "^0.4.0",
     "globals": "^15.0.0",
     "postcss": "^8.4.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.0.0",

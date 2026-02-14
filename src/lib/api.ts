@@ -161,7 +161,6 @@ export const nostrApi = {
     return await invoke('update_sync_settings', { settings });
   },
 
-
   // Blossom
   blossomMirror: async (
     serverUrl: string,
@@ -224,7 +223,7 @@ export const nostrApi = {
     return await nostrNative.stopNostrRelay();
   },
   getRelayEventCounts: async (): Promise<Record<number, number>> => {
-    return await nostrNative.getNostrEventCounts() as Record<number, number>;
+    return (await nostrNative.getNostrEventCounts()) as Record<number, number>;
   },
   getRelayEvents: async (): Promise<NostrEvent[]> => {
     return (await nostrNative.getNostrRelayEvents()) as unknown as NostrEvent[];

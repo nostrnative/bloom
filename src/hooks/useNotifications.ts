@@ -40,7 +40,7 @@ export function useNotifications() {
       if (!pubkey) return [];
       const rawEvents = await nostrApi.fetchEvents(
         pubkey,
-        getAllRelays(),
+        getAllRelays()
         // No range limits -> fetch all
       );
       return rawEvents.map(parseNostrEvent);

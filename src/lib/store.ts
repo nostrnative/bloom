@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AppState {
   pubkey: string | null;
@@ -7,7 +7,7 @@ interface AppState {
   notificationsEnabled: boolean;
   reminderInterval: number;
   selectedCalendarId: string | null;
-  theme: "light" | "dark" | "system";
+  theme: 'light' | 'dark' | 'system';
   localRelay: string | null;
   syncEnabled: boolean;
   syncIntervalMinutes: number;
@@ -43,7 +43,7 @@ interface AppState {
   setNotificationsEnabled: (enabled: boolean) => void;
   setReminderInterval: (interval: number) => void;
   setSelectedCalendarId: (id: string | null) => void;
-  setTheme: (theme: "light" | "dark" | "system") => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setLocalRelay: (relay: string | null) => void;
   setSyncEnabled: (enabled: boolean) => void;
   setSyncIntervalMinutes: (interval: number) => void;
@@ -85,15 +85,15 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       pubkey: null,
       relays: [
-        "wss://relay.damus.io",
-        "wss://nos.lol",
-        "wss://relay.primal.net",
-        "wss://relay.0xchat.com",
+        'wss://relay.damus.io',
+        'wss://nos.lol',
+        'wss://relay.primal.net',
+        'wss://relay.0xchat.com',
       ],
       notificationsEnabled: false,
       reminderInterval: 1,
       selectedCalendarId: null,
-      theme: "system",
+      theme: 'system',
       localRelay: null,
       syncEnabled: false,
       syncIntervalMinutes: 5,
@@ -112,9 +112,9 @@ export const useAppStore = create<AppState>()(
       relayAllowedPubkeys: [],
       relayAllowedTaggedPubkeys: [],
       relayEnableSearch: false,
-      relayHost: "127.0.0.1",
+      relayHost: '127.0.0.1',
       relayAutoBackup: false,
-      relayAutoBackupFolder: "",
+      relayAutoBackupFolder: '',
       relayStartOnBoot: true,
       relayUseProxy: false,
       relayProxyPort: 9050,
@@ -149,7 +149,7 @@ export const useAppStore = create<AppState>()(
         if (selectedContactPubkeys.includes(pk)) {
           set({
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk,
+              (k) => k !== pk
             ),
           });
         } else {
@@ -163,10 +163,10 @@ export const useAppStore = create<AppState>()(
         if (interestedContactPubkeys.includes(pk)) {
           set({
             interestedContactPubkeys: interestedContactPubkeys.filter(
-              (k) => k !== pk,
+              (k) => k !== pk
             ),
             selectedContactPubkeys: selectedContactPubkeys.filter(
-              (k) => k !== pk,
+              (k) => k !== pk
             ),
           });
         } else {
@@ -210,7 +210,7 @@ export const useAppStore = create<AppState>()(
         }),
     }),
     {
-      name: "calendar-storage",
-    },
-  ),
+      name: 'calendar-storage',
+    }
+  )
 );

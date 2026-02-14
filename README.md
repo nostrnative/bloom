@@ -8,47 +8,57 @@ A Tauri-based implementation of the [Blossom Protocol](https://github.com/hzrd14
 
 ✅ **BUD-00**: Base Language and Requirements
 ✅ **BUD-01**: Server Requirements and Blob Retrieval
+
 - GET /<sha256> endpoint
 - HEAD /<sha256> endpoint
 - CORS support
 - Range request support for mobile bandwidth optimization
 
 ✅ **BUD-02**: Blob Upload and Management
+
 - PUT /upload endpoint
 - DELETE /<sha256> endpoint
 - GET /list/<pubkey> endpoint (basic)
 - Blob descriptor format with NIP-94 support
 
 ✅ **BUD-03**: User Server List
+
 - Kind 10063 event support
 - Server list publishing
 - Fetching user's server lists
 
 ✅ **BUD-04**: Mirroring Blobs
+
 - PUT /mirror endpoint
 - Remote blob downloading and verification
 
 ✅ **BUD-05**: Media Optimization
+
 - PUT /media endpoint
 - Media type detection
 
 ✅ **BUD-06**: Upload Requirements
+
 - HEAD /upload endpoint
 - Pre-upload validation
 
 ✅ **BUD-07**: Payment Required
+
 - 402 Payment Required status support
 - Lightning (BOLT-11) and Cashu (NUT-24) support
 
 ✅ **BUD-08**: NIP-94 File Metadata
+
 - Full NIP-94 tag support
 - Metadata extraction and generation
 
 ✅ **BUD-09**: Blob Reporting
+
 - PUT /report endpoint
 - NIP-56 report event support
 
 ✅ **BUD-10**: Blossom URI Schema
+
 - URI parsing and generation
 - Resolution strategy
 
@@ -123,6 +133,7 @@ Authorization: Nostr <base64_encoded_event>
 ```
 
 Example authorization event:
+
 ```json
 {
   "kind": 24242,
@@ -207,11 +218,13 @@ Content-Type: application/json
 ## Mobile Support
 
 ### iOS
+
 - Background tasks for sync
 - File system access
 - Push notifications
 
 ### Android
+
 - Foreground service
 - WorkManager for periodic tasks
 - Persistent notifications
