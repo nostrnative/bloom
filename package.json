@@ -10,7 +10,9 @@
     "tauri": "tauri",
     "android": "tauri android",
     "ios": "tauri ios",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check": "npm run lint && tsc -b && cd src-tauri && cargo fmt -- --check && cargo clippy -- -D warnings && cargo test",
+    "full-build": "./scripts/build.sh"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -30,7 +32,7 @@
     "react-router-dom": "^7.13.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
-    "tauri-plugin-nostrnative": "file:../nostrnative",
+    "tauri-plugin-nostrnative": "^0.1.6",
     "zod": "^3.23.0",
     "zustand": "^4.5.0"
   },
