@@ -58,6 +58,10 @@ jobs:
         working-directory: blossom
         run: npm install
 
+      - name: Run quality checks
+        working-directory: blossom
+        run: npm run check
+
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
         env:
