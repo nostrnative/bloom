@@ -207,7 +207,7 @@ export const nostrApi = {
     serverUrl: string,
     pubkey: string,
     authHeader?: string
-  ): Promise<any[]> => {
+  ): Promise<unknown[]> => {
     return await nostrNative.blossomList(serverUrl, pubkey, authHeader);
   },
 

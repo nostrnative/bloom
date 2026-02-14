@@ -108,13 +108,7 @@ export function useEvents(
 
       return Object.values(uniqueEventsMap);
     },
-    [
-      pubkey,
-      onlyContacts,
-      getAllRelays,
-      useDifferentTimestamp,
-      selectedContactPubkeys,
-    ]
+    [pubkey, getAllRelays, useDifferentTimestamp, selectedContactPubkeys]
   );
 
   const fetchParams = useMemo(
@@ -202,6 +196,7 @@ export function useEvents(
     view,
     pubkey,
     onlyContacts,
+    useDifferentTimestamp,
     queryClient,
     fetchEvents,
     selectedContactPubkeys,

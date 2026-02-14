@@ -45,10 +45,6 @@ pub fn get_server_port() -> u16 {
     ACTIVE_PORT.load(Ordering::SeqCst)
 }
 
-pub fn set_active_port(port: u16) {
-    ACTIVE_PORT.store(port, Ordering::SeqCst);
-}
-
 #[derive(Deserialize, Debug, Default)]
 pub struct ProxyHints {
     pub xs: Option<String>,
@@ -112,7 +108,11 @@ pub async fn start_server(handle: AppHandle, port: u16) -> Result<u16, String> {
     }
 
     if current_port != 0 {
-        tracing::info!("Restarting Blossom server from port {} to {}", current_port, port);
+        tracing::info!(
+            "Restarting Blossom server from port {} to {}",
+            current_port,
+            port
+        );
         // Signal shutdown to the existing server
         let mut tx_guard = SHUTDOWN_TX.write().await;
         if let Some(tx) = tx_guard.take() {
@@ -203,11 +203,7 @@ fn parse_range(range_header: &str, total_size: usize) -> Option<(usize, usize)> 
         if suffix == 0 {
             return None;
         }
-        let start = if suffix >= total_size {
-            0
-        } else {
-            total_size - suffix
-        };
+        let start = total_size.saturating_sub(suffix);
         Some((start, total_size - 1))
     } else if end_str.is_empty() {
         // Open range: 100- means from 100 to end
@@ -538,7 +534,7 @@ async fn mirror_blob(
         .url
         .split('?')
         .next()
-        .and_then(|s| s.split('.').last())
+        .and_then(|s| s.split('.').next_back())
         .filter(|s| !s.is_empty() && s.len() < 5)
         .map(|s| s.to_string());
 
@@ -820,7 +816,7 @@ async fn fetch_author_servers(pubkey_str: &str) -> Result<Vec<String>, String> {
         let mut servers = Vec::new();
         for tag in event.tags.iter() {
             let tag_vec = tag.clone().to_vec();
-            if tag_vec.get(0) == Some(&"server".to_string()) {
+            if tag_vec.first() == Some(&"server".to_string()) {
                 if let Some(url) = tag_vec.get(1) {
                     servers.push(url.clone());
                 }

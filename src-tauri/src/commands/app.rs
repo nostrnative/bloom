@@ -20,7 +20,7 @@ pub async fn start_relay_service(
     port: u16,
     sync_settings_state: State<'_, SyncSettingsState>,
 ) -> Result<u16, String> {
-    let (pubkey, kinds, allowed_pubkeys, tagged_pubkeys, enable_search) = {
+    let (pubkey, kinds, allowed_pubkeys, tagged_pubkeys, _enable_search) = {
         let settings_guard = sync_settings_state.settings.read().await;
         (
             settings_guard.pubkey.clone(),
@@ -133,7 +133,10 @@ pub async fn update_sync_settings(
                 changed = true;
             }
         }
-        if let Some(relay_enable_search) = settings.get("relay_enable_search").and_then(|v| v.as_bool()) {
+        if let Some(relay_enable_search) = settings
+            .get("relay_enable_search")
+            .and_then(|v| v.as_bool())
+        {
             if settings_guard.relay_enable_search != relay_enable_search {
                 settings_guard.relay_enable_search = relay_enable_search;
                 changed = true;
@@ -183,7 +186,7 @@ pub async fn update_sync_settings(
 
     // After updating state, if relay needs restart, apply new policies
     if relay_needs_restart {
-        let (port, pubkey, kinds, allowed_pubkeys, tagged_pubkeys, enable_search) = {
+        let (port, pubkey, kinds, allowed_pubkeys, tagged_pubkeys, _enable_search) = {
             let s = sync_settings_state.settings.read().await;
             (
                 s.relay_port,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -40,7 +40,7 @@ export default function BlossomServer() {
 
   const serverUrl = useMemo(() => `http://127.0.0.1:${port}`, [port]);
 
-  const checkServer = async () => {
+  const checkServer = useCallback(async () => {
     try {
       const response = await fetch(`${serverUrl}/`, {
         method: "GET",
@@ -48,16 +48,16 @@ export default function BlossomServer() {
         headers: { Accept: "application/json" },
       });
       setServerRunning(response.ok);
-    } catch (error) {
+    } catch {
       setServerRunning(false);
     }
-  };
+  }, [serverUrl]);
 
   useEffect(() => {
     checkServer();
     const interval = setInterval(checkServer, 5000);
     return () => clearInterval(interval);
-  }, [serverUrl]);
+  }, [checkServer]);
 
   const { data: blobs = [], isLoading: isLoadingBlobs } = useQuery({
     queryKey: ["blobs", serverUrl, pubkey],

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import { MultiInput } from "@/components/ui/multi-input";
@@ -122,7 +122,7 @@ export default function Settings() {
     JSON.stringify(inputAllowedTaggedPubkeys) !==
       JSON.stringify(relayAllowedTaggedPubkeys);
 
-  const updateSync = async () => {
+  const updateSync = useCallback(async () => {
     await nostrApi.updateSyncSettings({
       local_relay: localRelay,
       remote_relays: relays,
@@ -138,24 +138,25 @@ export default function Settings() {
       relay_enable_search: relayEnableSearch,
       relay_port: relayPort,
     });
-  };
-
-  useEffect(() => {
-    updateSync();
   }, [
     localRelay,
     relays,
-    syncEnabled,
-    syncIntervalMinutes,
-    onlyContacts,
-    interestedContactPubkeys,
     pubkey,
+    syncIntervalMinutes,
+    syncEnabled,
+    onlyContacts,
+    lastSyncTimestamp,
+    interestedContactPubkeys,
     relayAllowedKinds,
     relayAllowedPubkeys,
     relayAllowedTaggedPubkeys,
     relayEnableSearch,
     relayPort,
   ]);
+
+  useEffect(() => {
+    updateSync();
+  }, [updateSync]);
 
   const addRelay = () => {
     if (newRelay && !relays.includes(newRelay)) {

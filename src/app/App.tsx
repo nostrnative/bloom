@@ -160,7 +160,7 @@ function AppContent() {
     return () => {
       mounted = false;
     };
-  }, [preferredPort, relayPort, relayEnabled, startBlossom, startRelay]);
+  }, [preferredPort, blossomPort, relayPort, relayEnabled, startBlossom, startRelay]);
 
   useEffect(() => {
     const root = window.document.documentElement;

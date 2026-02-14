@@ -5320,6 +5320,8 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-nostrnative"
 version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68eb14f8aa4ed4c13095c4f05f8119d9a01ec510032dd070c131ed07c501acdc"
 dependencies = [
  "base64 0.22.1",
  "nostr",
