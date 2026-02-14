@@ -45,6 +45,11 @@ pub fn get_server_port() -> u16 {
     ACTIVE_PORT.load(Ordering::SeqCst)
 }
 
+#[cfg(target_os = "android")]
+pub fn set_active_port(port: u16) {
+    ACTIVE_PORT.store(port, Ordering::SeqCst);
+}
+
 #[derive(Deserialize, Debug, Default)]
 pub struct ProxyHints {
     pub xs: Option<String>,
