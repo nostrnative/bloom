@@ -90,7 +90,7 @@ export default function NostrRelay() {
           <div>
             <h1 className='text-3xl font-bold'>Nostr Relay</h1>
             <p className='text-muted-foreground'>
-              Internal parallel relay for local event storage
+              relay for local event storage
             </p>
           </div>
         </div>

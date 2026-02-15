@@ -22,6 +22,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select } from '@/components/ui/select';
 import { invoke } from '@tauri-apps/api/core';
 
 export default function Settings() {
@@ -224,23 +228,25 @@ export default function Settings() {
           </CardHeader>
           <CardContent className='space-y-6 p-6 pt-0'>
             <div className='flex items-center justify-between'>
-              <div className='flex flex-col'>
-                <span className='text-sm font-medium'>Appearance</span>
+              <div className='flex flex-col gap-1'>
+                <Label htmlFor='theme-select'>Appearance</Label>
                 <span className='text-muted-foreground text-xs'>
                   Choose your preferred theme
                 </span>
               </div>
-              <select
-                value={theme}
-                onChange={(e) =>
-                  setTheme(e.target.value as 'light' | 'dark' | 'system')
-                }
-                className='border-input bg-background ring-offset-background focus-visible:ring-ring rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
-              >
-                <option value='system'>System</option>
-                <option value='light'>Light</option>
-                <option value='dark'>Dark</option>
-              </select>
+              <div className='w-[180px]'>
+                <Select
+                  id='theme-select'
+                  value={theme}
+                  onChange={(e) =>
+                    setTheme(e.target.value as 'light' | 'dark' | 'system')
+                  }
+                >
+                  <option value='system'>System</option>
+                  <option value='light'>Light</option>
+                  <option value='dark'>Dark</option>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -260,23 +266,31 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-6 p-6 pt-0'>
-            <div className='flex items-center justify-between rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900'>
-              <div className='flex flex-col'>
-                <span className='text-sm font-medium'>Active Port</span>
+            <div className='flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50'>
+              <div className='flex flex-col gap-1'>
+                <Label>Active Port</Label>
                 <span className='text-muted-foreground text-xs'>
                   Current listening port
                 </span>
               </div>
-              <Badge className='bg-indigo-600 px-3 py-1'>{blossomPort}</Badge>
+              <Badge
+                variant='outline'
+                className='border-indigo-200 bg-indigo-50 px-3 py-1 font-mono text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
+              >
+                {blossomPort}
+              </Badge>
             </div>
 
-            <div className='space-y-2'>
-              <label className='text-muted-foreground text-xs font-bold tracking-widest uppercase'>
+            <div className='space-y-3'>
+              <Label
+                htmlFor='blossom-port'
+                className='text-muted-foreground text-xs font-bold tracking-widest uppercase'
+              >
                 Manual Port Override
-              </label>
-              <input
+              </Label>
+              <Input
+                id='blossom-port'
                 type='number'
-                className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                 placeholder='Default (24242)'
                 value={inputPort}
                 onChange={(e) => setInputPort(e.target.value)}
@@ -290,7 +304,7 @@ export default function Settings() {
       <section id='relay' className='space-y-4'>
         <div className='flex items-center gap-2 px-1'>
           <RefreshCw className='h-5 w-5 text-indigo-600' />
-          <h2 className='text-xl font-bold'>Internal Nostr Relay</h2>
+          <h2 className='text-xl font-bold'>Nostr Relay</h2>
         </div>
         <Card className='border-zinc-200 shadow-sm dark:border-zinc-800'>
           <CardHeader>
@@ -301,17 +315,16 @@ export default function Settings() {
           </CardHeader>
           <CardContent className='space-y-6 p-6 pt-0'>
             <div className='flex items-center justify-between'>
-              <div className='flex flex-col'>
-                <span className='text-sm font-medium'>Enable Relay</span>
+              <div className='flex flex-col gap-1'>
+                <Label htmlFor='relay-toggle'>Enable Relay</Label>
                 <span className='text-muted-foreground text-xs'>
                   Run a local Nostr relay on this device
                 </span>
               </div>
-              <input
-                type='checkbox'
+              <Switch
+                id='relay-toggle'
                 checked={relayEnabled}
-                onChange={async (e) => {
-                  const enabled = e.target.checked;
+                onCheckedChange={async (enabled) => {
                   setRelayEnabled(enabled);
                   try {
                     await invoke('toggle_relay', { enabled, port: relayPort });
@@ -319,54 +332,57 @@ export default function Settings() {
                     console.error('Failed to toggle relay:', err);
                   }
                 }}
-                className='h-5 w-5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500'
               />
             </div>
 
-            <div className='space-y-2 border-t pt-6'>
-              <label className='text-muted-foreground text-xs font-bold tracking-widest uppercase'>
+            <div className='space-y-3 border-t border-zinc-100 pt-6 dark:border-zinc-800'>
+              <Label
+                htmlFor='relay-port'
+                className='text-muted-foreground text-xs font-bold tracking-widest uppercase'
+              >
                 Relay Port
-              </label>
-              <input
+              </Label>
+              <Input
+                id='relay-port'
                 type='number'
                 value={inputRelayPort}
                 onChange={(e) => setInputRelayPort(e.target.value)}
-                className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
               />
             </div>
 
-            <div className='flex items-center justify-between border-t pt-6 opacity-60'>
-              <div className='flex flex-col'>
-                <span className='text-sm font-medium'>
+            <div className='flex items-center justify-between border-t border-zinc-100 pt-6 opacity-60 dark:border-zinc-800'>
+              <div className='flex flex-col gap-1'>
+                <Label className='flex items-center'>
                   NIP-50 Search (sqlite-vec){' '}
-                  <span className='ml-1 rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 dark:bg-zinc-800'>
+                  <Badge
+                    variant='secondary'
+                    className='ml-2 px-1.5 py-0 text-[10px]'
+                  >
                     COMING SOON
-                  </span>
-                </span>
+                  </Badge>
+                </Label>
                 <span className='text-muted-foreground text-xs'>
                   Enable vector search for events
                 </span>
               </div>
-              <input
-                type='checkbox'
+              <Switch
                 disabled
                 checked={inputEnableSearch}
-                onChange={(e) => setInputEnableSearch(e.target.checked)}
-                className='h-5 w-5 cursor-not-allowed rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500'
+                onCheckedChange={setInputEnableSearch}
               />
             </div>
 
-            <div className='space-y-6 border-t pt-6'>
+            <div className='space-y-6 border-t border-zinc-100 pt-6 dark:border-zinc-800'>
               <h4 className='text-muted-foreground flex items-center text-xs font-bold tracking-widest uppercase'>
                 <ShieldCheck className='mr-2 h-4 w-4' />
                 Access Control
               </h4>
 
               <div className='space-y-6'>
-                <div className='space-y-2'>
-                  <label className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+                <div className='space-y-3'>
+                  <Label className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
                     Allowed Event Kinds
-                  </label>
+                  </Label>
                   <MultiInput
                     values={inputAllowedKinds.map(String)}
                     onChange={(vals) =>
@@ -379,10 +395,10 @@ export default function Settings() {
                   />
                 </div>
 
-                <div className='space-y-2'>
-                  <label className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+                <div className='space-y-3'>
+                  <Label className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
                     Allowed Pubkeys
-                  </label>
+                  </Label>
                   <MultiInput
                     values={inputAllowedPubkeys}
                     onChange={setInputAllowedPubkeys}
@@ -390,10 +406,10 @@ export default function Settings() {
                   />
                 </div>
 
-                <div className='space-y-2'>
-                  <label className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+                <div className='space-y-3'>
+                  <Label className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
                     Allowed Tagged Pubkeys
-                  </label>
+                  </Label>
                   <MultiInput
                     values={inputAllowedTaggedPubkeys}
                     onChange={setInputAllowedTaggedPubkeys}
@@ -421,9 +437,8 @@ export default function Settings() {
           </CardHeader>
           <CardContent className='space-y-6 p-6 pt-0'>
             <div className='flex gap-2'>
-              <input
+              <Input
                 type='text'
-                className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                 placeholder='wss://...'
                 value={newRelay}
                 onChange={(e) => setNewRelay(e.target.value)}
@@ -439,7 +454,7 @@ export default function Settings() {
               {relays.map((relay) => (
                 <div
                   key={relay}
-                  className='group flex items-center justify-between rounded-xl border bg-white p-3 transition-colors hover:bg-zinc-50 dark:bg-zinc-950 dark:hover:bg-zinc-900'
+                  className='group flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 transition-colors hover:bg-zinc-100/50 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50'
                 >
                   <span className='truncate font-mono text-xs opacity-80'>
                     {relay}
@@ -448,7 +463,7 @@ export default function Settings() {
                     variant='ghost'
                     size='sm'
                     onClick={() => removeRelay(relay)}
-                    className='text-muted-foreground h-8 w-8 shrink-0 p-0 hover:text-red-500'
+                    className='text-muted-foreground h-8 w-8 shrink-0 p-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30'
                   >
                     <Trash2 className='h-4 w-4' />
                   </Button>
