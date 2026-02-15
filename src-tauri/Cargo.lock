@@ -471,7 +471,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "blossom"
+name = "bloom"
 version = "0.1.0"
 dependencies = [
  "async-trait",

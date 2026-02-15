@@ -53,7 +53,7 @@ pub fn run_app() {
                 TrayIconBuilder::new()
                     .icon(icon)
                     .menu(&menu)
-                    .tooltip("Blostr")
+                    .tooltip("Bloom")
                     .on_menu_event(|app, event| match event.id().as_ref() {
                         "show" => {
                             if let Some(window) = app.get_webview_window("main") {
@@ -98,7 +98,7 @@ fn init_logging() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "blossom=debug,tower_http=debug,axum=debug".into()),
+                .unwrap_or_else(|_| "bloom=debug,tower_http=debug,axum=debug".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();

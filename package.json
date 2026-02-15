@@ -1,5 +1,5 @@
 {
-  "name": "bloom-server",
+  "name": "bloom",
   "version": "0.1.0",
   "description": "Hybrid Nostr Relay & Blossom Server - Tauri Application",
   "type": "module",
