@@ -15,7 +15,7 @@ name = "blossom"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
-tauri = { version = "2", features = ["devtools", "rustls-tls"] }
+tauri = { version = "2", features = ["devtools", "rustls-tls", "tray-icon", "image-png"] }
 tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"

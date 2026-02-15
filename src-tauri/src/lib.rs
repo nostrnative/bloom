@@ -8,6 +8,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
+use tauri::Manager;
 use tokio::sync::RwLock;
 
 #[derive(Clone)]
@@ -33,6 +34,50 @@ pub fn run_app() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_nostrnative::init())
+        .setup(|app| {
+            #[cfg(desktop)]
+            {
+                use tauri::image::Image;
+                use tauri::menu::{MenuBuilder, MenuItemBuilder};
+                use tauri::tray::TrayIconBuilder;
+
+                let show = MenuItemBuilder::with_id("show", "Show").build(app)?;
+                let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+                let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
+
+                let icon = Image::from_path("icons/blostr-transparent.png").unwrap_or_else(|_| {
+                    Image::from_bytes(include_bytes!("../icons/blostr-transparent.png"))
+                        .expect("failed to load tray icon")
+                });
+
+                TrayIconBuilder::new()
+                    .icon(icon)
+                    .menu(&menu)
+                    .tooltip("Blostr")
+                    .on_menu_event(|app, event| match event.id().as_ref() {
+                        "show" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    })
+                    .build(app)?;
+            }
+
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            #[cfg(desktop)]
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                let _ = window.hide();
+                api.prevent_close();
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             http_server::get_server_port,
             commands::app::start_blossom_server,
