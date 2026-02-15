@@ -87,6 +87,38 @@ function AppContent() {
   } = useAppStore();
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const removeLoader = async () => {
+      // Wait for store hydration
+      await new Promise((resolve) => {
+        const unsub = useAppStore.persist.onFinishHydration(() => {
+          unsub();
+          resolve(true);
+        });
+        if (useAppStore.persist.hasHydrated()) {
+          unsub();
+          resolve(true);
+        }
+      });
+
+      // Give React a moment to render the content behind the loader
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const loader = document.getElementById('initial-loader');
+      if (loader) {
+        loader.style.transition =
+          'opacity 0.6s ease-in-out, transform 0.6s ease-in-out';
+        loader.style.opacity = '0';
+        loader.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+          loader.remove();
+        }, 600);
+      }
+    };
+
+    removeLoader();
+  }, []);
+
   const startBlossom = useCallback(
     async (port: number): Promise<boolean> => {
       try {
