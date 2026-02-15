@@ -231,7 +231,7 @@ function AppContent() {
           <div className='flex items-center justify-center pb-0 md:pb-2'>
             <img
               src='/logo.png'
-              alt='Blossom Logo'
+              alt='Bloom Logo'
               className='h-10 w-10 rounded-xl'
             />
           </div>

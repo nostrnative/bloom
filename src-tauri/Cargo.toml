@@ -1,7 +1,7 @@
 [package]
-name = "blossom"
+name = "bloom"
 version = "0.1.0"
-description = "Blossom Protocol Server - Tauri Application"
+description = "Bloom Protocol Server - Tauri Application"
 authors = ["you"]
 license = ""
 repository = ""
@@ -11,7 +11,7 @@ edition = "2021"
 tauri-build = { version = "2", features = [] }
 
 [lib]
-name = "blossom"
+name = "bloom"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
