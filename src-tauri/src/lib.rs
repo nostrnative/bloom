@@ -8,7 +8,6 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
-use tauri::Manager;
 use tokio::sync::RwLock;
 
 #[derive(Clone)]
@@ -40,9 +39,10 @@ pub fn run_app() {
                 use tauri::image::Image;
                 use tauri::menu::{MenuBuilder, MenuItemBuilder};
                 use tauri::tray::TrayIconBuilder;
+                use tauri::Manager;
 
-                let show = MenuItemBuilder::with_id("show", "Show").build(app)?;
-                let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+                let show = MenuItemBuilder::with_id("show", "Show Bloom").build(app)?;
+                let quit = MenuItemBuilder::with_id("quit", "Quit Bloom").build(app)?;
                 let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
 
                 let icon = Image::from_path("icons/blostr-transparent.png").unwrap_or_else(|_| {
