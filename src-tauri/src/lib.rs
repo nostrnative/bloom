@@ -33,7 +33,7 @@ pub fn run_app() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_nostrnative::init())
-        .setup(|app| {
+        .setup(|_app| {
             #[cfg(desktop)]
             {
                 use tauri::image::Image;
@@ -41,9 +41,9 @@ pub fn run_app() {
                 use tauri::tray::TrayIconBuilder;
                 use tauri::Manager;
 
-                let show = MenuItemBuilder::with_id("show", "Show Bloom").build(app)?;
-                let quit = MenuItemBuilder::with_id("quit", "Quit Bloom").build(app)?;
-                let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
+                let show = MenuItemBuilder::with_id("show", "Show Bloom").build(_app)?;
+                let quit = MenuItemBuilder::with_id("quit", "Quit Bloom").build(_app)?;
+                let menu = MenuBuilder::new(_app).items(&[&show, &quit]).build()?;
 
                 let icon = Image::from_path("icons/blostr-transparent.png").unwrap_or_else(|_| {
                     Image::from_bytes(include_bytes!("../icons/blostr-transparent.png"))
@@ -66,15 +66,15 @@ pub fn run_app() {
                         }
                         _ => {}
                     })
-                    .build(app)?;
+                    .build(_app)?;
             }
 
             Ok(())
         })
-        .on_window_event(|window, event| {
+        .on_window_event(|_window, _event| {
             #[cfg(desktop)]
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                let _ = window.hide();
+            if let tauri::WindowEvent::CloseRequested { api, .. } = _event {
+                let _ = _window.hide();
                 api.prevent_close();
             }
         })
