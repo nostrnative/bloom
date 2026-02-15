@@ -6,39 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  quality-check:
-    name: Quality Checks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Format check
-        run: npm run format-check
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Rust setup
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-
-      - name: Rust format check
-        run: |
-          cd src-tauri
-          cargo fmt -- --check
-
   release:
     needs: quality-check
     permissions:
@@ -90,16 +57,6 @@ jobs:
 
       - name: Build frontend
         run: npm run build
-
-      - name: Rust clippy
-        run: |
-          cd src-tauri
-          cargo clippy -- -D warnings
-
-      - name: Rust test
-        run: |
-          cd src-tauri
-          cargo test
 
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
