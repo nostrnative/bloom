@@ -42,7 +42,6 @@ function SyncManager() {
     nostrApi.updateSyncSettings({
       local_relay: localRelay,
       remote_relays: relays,
-      pubkey,
       interval_minutes: syncIntervalMinutes,
       enabled: syncEnabled,
       only_contacts: onlyContacts,

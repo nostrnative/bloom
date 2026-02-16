@@ -48,8 +48,6 @@ export default function BlossomServer() {
 
   useEffect(() => {
     checkServer();
-    const interval = setInterval(checkServer, 5000);
-    return () => clearInterval(interval);
   }, [checkServer]);
 
   const { data: blobs = [], isLoading: isLoadingBlobs } = useQuery({

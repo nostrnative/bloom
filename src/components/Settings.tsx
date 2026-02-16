@@ -4,10 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { MultiInput } from '@/components/ui/multi-input';
 import { nostrApi } from '@/lib/api';
 import {
-  Trash2,
-  Plus,
   Server,
-  Globe,
   ShieldCheck,
   RefreshCw,
   Skull,
@@ -30,11 +27,9 @@ import { invoke } from '@tauri-apps/api/core';
 
 export default function Settings() {
   const {
-    pubkey,
-    relays,
-    setRelays,
     theme,
     setTheme,
+    relays,
     localRelay,
     syncEnabled,
     syncIntervalMinutes,
@@ -59,7 +54,6 @@ export default function Settings() {
     setRelayEnableSearch,
   } = useAppStore();
 
-  const [newRelay, setNewRelay] = useState('');
   const [inputPort, setInputPort] = useState(
     preferredPort?.toString() || blossomPort.toString()
   );
@@ -130,7 +124,6 @@ export default function Settings() {
     await nostrApi.updateSyncSettings({
       local_relay: localRelay,
       remote_relays: relays,
-      pubkey,
       interval_minutes: syncIntervalMinutes,
       enabled: syncEnabled,
       only_contacts: onlyContacts,
@@ -145,7 +138,6 @@ export default function Settings() {
   }, [
     localRelay,
     relays,
-    pubkey,
     syncIntervalMinutes,
     syncEnabled,
     onlyContacts,
@@ -161,17 +153,6 @@ export default function Settings() {
   useEffect(() => {
     updateSync();
   }, [updateSync]);
-
-  const addRelay = () => {
-    if (newRelay && !relays.includes(newRelay)) {
-      setRelays([...relays, newRelay]);
-      setNewRelay('');
-    }
-  };
-
-  const removeRelay = (relay: string) => {
-    setRelays(relays.filter((r) => r !== relay));
-  };
 
   const handleClearBlossom = async () => {
     if (confirm('Are you sure? This will delete ALL your uploaded files! 😱')) {
@@ -417,58 +398,6 @@ export default function Settings() {
                   />
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Network Section */}
-      <section id='network' className='space-y-4'>
-        <div className='flex items-center gap-2 px-1'>
-          <Globe className='h-5 w-5 text-indigo-600' />
-          <h2 className='text-xl font-bold'>Nostr Network</h2>
-        </div>
-        <Card className='border-zinc-200 shadow-sm dark:border-zinc-800'>
-          <CardHeader>
-            <CardTitle>Remote Relays</CardTitle>
-            <CardDescription>
-              Configure remote relays for syncing
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='space-y-6 p-6 pt-0'>
-            <div className='flex gap-2'>
-              <Input
-                type='text'
-                placeholder='wss://...'
-                value={newRelay}
-                onChange={(e) => setNewRelay(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addRelay()}
-              />
-              <Button onClick={addRelay}>
-                <Plus className='mr-2 h-4 w-4' />
-                Add
-              </Button>
-            </div>
-
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-              {relays.map((relay) => (
-                <div
-                  key={relay}
-                  className='group flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 transition-colors hover:bg-zinc-100/50 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50'
-                >
-                  <span className='truncate font-mono text-xs opacity-80'>
-                    {relay}
-                  </span>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => removeRelay(relay)}
-                    className='text-muted-foreground h-8 w-8 shrink-0 p-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30'
-                  >
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
-                </div>
-              ))}
             </div>
           </CardContent>
         </Card>
