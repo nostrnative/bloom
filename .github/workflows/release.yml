@@ -7,7 +7,6 @@ on:
 
 jobs:
   release:
-    needs: quality-check
     permissions:
       contents: write
     strategy:
