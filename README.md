@@ -1,274 +1,119 @@
-# 🌸 Blossom Server
+<p align="center">
+  <img src="src-tauri/icons/blostr-transparent.png" width="160" height="160" alt="Bloom Logo">
+</p>
 
-A Tauri-based implementation of the [Blossom Protocol](https://github.com/hzrd149/blossom) - a decentralized media storage system for the Nostr ecosystem.
+<h1 align="center">Bloom</h1>
+
+<p align="center">
+  <strong>A self-hosted, decentralized media server and Nostr relay in your pocket.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Tauri-v2-FFC131?logo=tauri&logoColor=white" alt="Tauri">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React">
+  <img src="https://img.shields.io/badge/Rust-2024-000000?logo=rust&logoColor=white" alt="Rust">
+  <img src="https://img.shields.io/badge/Blossom-BUD--01--10-8A2BE2" alt="Blossom">
+  <img src="https://img.shields.io/badge/Tailwind-v4-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind">
+</p>
+
+---
+
+**Bloom** is a cross-platform application that bundles a full **Blossom protocol media server** and **Nostr relay** into a single, user-friendly package. Run your own sovereign file storage and relay from your desktop or phone — no server administration required.
+
+## Your Media, Your Rules
+
+Bloom is built on the belief that your data belongs to you. By implementing the full Blossom protocol specification, it gives you a personal media server that integrates natively with the Nostr ecosystem.
+
+### Core Principles
+
+- **Sovereign Storage**: Your files live on your machine, served on your terms. No third-party hosting.
+- **Full Protocol Compliance**: Implements BUD-00 through BUD-10 for complete Blossom compatibility.
+- **Integrated Relay**: A built-in Nostr relay runs alongside your media server.
+- **Cross-Platform**: Desktop (macOS, Windows, Linux) and Mobile (Android, iOS) from a single codebase.
 
 ## Features
 
-### Fully Implemented BUDs
+Everything you need to run a personal media node on the Nostr network.
 
-✅ **BUD-00**: Base Language and Requirements
-✅ **BUD-01**: Server Requirements and Blob Retrieval
+- **Blob Storage & Retrieval**: Upload, download, and manage files with SHA-256 content addressing (BUD-01/02).
+- **Nostr Authentication**: Cryptographic authorization via Kind 24242 events with signature verification.
+- **Blob Mirroring**: Pull and verify blobs from remote Blossom servers (BUD-04).
+- **Media Optimization**: Automatic type detection and optimization for efficient delivery (BUD-05).
+- **Upload Validation**: Pre-flight checks so clients know upload requirements before sending data (BUD-06).
+- **Payment Support**: Lightning (BOLT-11) and Cashu (NUT-24) payment flows for monetized storage (BUD-07).
+- **NIP-94 Metadata**: Rich file metadata tags for Nostr event integration (BUD-08).
+- **Blob Reporting**: Flag content with NIP-56 report events (BUD-09).
+- **Blossom URIs**: Native `blossom://` URI scheme parsing and resolution (BUD-10).
+- **Range Requests**: Partial content delivery for bandwidth-conscious mobile clients.
+- **Background Sync**: System tray presence on desktop, foreground services on Android.
 
-- GET /<sha256> endpoint
-- HEAD /<sha256> endpoint
-- CORS support
-- Range request support for mobile bandwidth optimization
+## Cross-Platform Experience
 
-✅ **BUD-02**: Blob Upload and Management
+Bloom delivers a unified experience across Desktop (macOS, Windows, Linux) and Mobile.
 
-- PUT /upload endpoint
-- DELETE /<sha256> endpoint
-- GET /list/<pubkey> endpoint (basic)
-- Blob descriptor format with NIP-94 support
+- **Desktop**: Native performance with system tray integration and background sync.
+- **Mobile**: Android foreground service with persistent notifications; iOS background tasks.
 
-✅ **BUD-03**: User Server List
+## Tech Stack
 
-- Kind 10063 event support
-- Server list publishing
-- Fetching user's server lists
-
-✅ **BUD-04**: Mirroring Blobs
-
-- PUT /mirror endpoint
-- Remote blob downloading and verification
-
-✅ **BUD-05**: Media Optimization
-
-- PUT /media endpoint
-- Media type detection
-
-✅ **BUD-06**: Upload Requirements
-
-- HEAD /upload endpoint
-- Pre-upload validation
-
-✅ **BUD-07**: Payment Required
-
-- 402 Payment Required status support
-- Lightning (BOLT-11) and Cashu (NUT-24) support
-
-✅ **BUD-08**: NIP-94 File Metadata
-
-- Full NIP-94 tag support
-- Metadata extraction and generation
-
-✅ **BUD-09**: Blob Reporting
-
-- PUT /report endpoint
-- NIP-56 report event support
-
-✅ **BUD-10**: Blossom URI Schema
-
-- URI parsing and generation
-- Resolution strategy
+| Layer         | Technology                                       |
+| :------------ | :----------------------------------------------- |
+| **Frontend**  | React 19, TypeScript, Tailwind CSS v4, Radix UI  |
+| **Backend**   | Tauri v2, Rust, Axum, Tokio                      |
+| **Protocol**  | Blossom (BUD-00–10), Nostr (NIP-04, NIP-56, NIP-94) |
+| **State**     | Zustand, TanStack Query                          |
+| **Server**    | Axum HTTP (port 24242), Nostr Relay (port 4869)  |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Rust 1.77.2+
-- Node.js 18+
-- Tauri CLI
+- [Node.js](https://nodejs.org/) (Latest LTS)
+- [Rust](https://www.rust-lang.org/) (Stable)
+- [Android Studio](https://developer.android.com/studio) (for mobile development)
 
-### Installation
+### Installation & Development
 
 ```bash
-# Clone the repository
-cd blossom
-
-# Install dependencies
+# 1. Clone & Install
 npm install
 
-# Run in development mode
+# 2. Start Desktop Dev Environment
 npm run tauri dev
+
+# 3. Start Android Dev Environment
+npm run android dev
 ```
 
-## Project Structure
-
-```
-blossom/
-├── src/                    # Frontend
-│   ├── index.html          # Main UI
-│   └── app.js             # Frontend logic
-├── src-tauri/             # Rust backend
-│   ├── src/
-│   │   ├── main.rs         # Tauri entry point
-│   │   ├── http_server.rs  # Axum HTTP server
-│   │   ├── storage.rs      # Blob storage manager
-│   │   ├── nostr.rs        # Nostr auth handler
-│   │   ├── auth.rs         # Authorization logic
-│   │   ├── mobile/         # Mobile background services
-│   │   └── buds/          # BUD implementations
-│   ├── Cargo.toml
-│   └── tauri.conf.json
-└── PLAN.md                # Implementation plan
-```
-
-## Usage
-
-### Starting the Server
-
-The server automatically starts when you run the Tauri app:
+### Production Builds
 
 ```bash
-npm run tauri dev
-```
-
-The HTTP server will be available at `http://localhost:8080`
-
-### Uploading Blobs
-
-You can upload files through the web interface:
-
-1. Drag and drop a file onto the upload area
-2. The file will be automatically uploaded
-3. The blob URL will be displayed
-
-### Nostr Authentication
-
-The server supports Nostr authentication for protected operations:
-
-```
-Authorization: Nostr <base64_encoded_event>
-```
-
-Example authorization event:
-
-```json
-{
-  "kind": 24242,
-  "content": "Upload Blob",
-  "created_at": 1708773959,
-  "tags": [
-    ["t", "upload"],
-    ["x", "b1674191a88ec5cdd733e4240a81803105dc412d6c6708d53ab94fc248f4f553"],
-    ["expiration", "1708858680"]
-  ]
-}
-```
-
-## API Endpoints
-
-### BUD-01: Blob Retrieval
-
-```bash
-# Get blob
-GET /<sha256>
-
-# Check blob existence
-HEAD /<sha256>
-```
-
-### BUD-02: Upload/Management
-
-```bash
-# Upload blob
-PUT /upload
-
-# Delete blob
-DELETE /<sha256>
-
-# List user's blobs
-GET /list/<pubkey>
-```
-
-### BUD-04: Mirroring
-
-```bash
-# Mirror blob from URL
-PUT /mirror
-Content-Type: application/json
-
-{
-  "url": "https://example.com/blob.pdf"
-}
-```
-
-### BUD-05: Media Optimization
-
-```bash
-# Optimize media
-PUT /media
-```
-
-### BUD-06: Upload Requirements
-
-```bash
-# Check upload requirements
-HEAD /upload
-X-SHA-256: <hash>
-X-Content-Length: <size>
-X-Content-Type: <mime_type>
-```
-
-### BUD-09: Reporting
-
-```bash
-# Report blob
-PUT /report
-Content-Type: application/json
-
-{
-  "kind": 1984,
-  "tags": [["x", "<sha256>", "<type>"]],
-  "content": "Reason for report"
-}
-```
-
-## Mobile Support
-
-### iOS
-
-- Background tasks for sync
-- File system access
-- Push notifications
-
-### Android
-
-- Foreground service
-- WorkManager for periodic tasks
-- Persistent notifications
-
-## Configuration
-
-Server settings are configured in `src-tauri/tauri.conf.json`:
-
-- Server port: 8080
-- Storage location: App local data directory
-- Max upload size: 100 MiB
-
-## Development
-
-### Running Tests
-
-```bash
-cd src-tauri
-cargo test
-```
-
-### Building for Production
-
-```bash
-# Desktop
+# Build Desktop application
 npm run tauri build
 
-# iOS
-npm run tauri build --target ios
-
-# Android
-npm run tauri build --target android
+# Build signed release (all platforms)
+./scripts/build.sh
 ```
 
-## License
+### Quality Assurance
 
-MIT License
+Maintain code standards and run all tests:
 
-## Contributing
+```bash
+npm run check
+```
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+## Architecture
 
-## Links
+- **`src/`**: React 19 frontend with Tailwind v4 and Radix UI.
+  - `components/`: Blob management, relay status, and settings UI.
+  - `lib/`: Zustand stores and Tauri IPC API definitions.
+- **`src-tauri/`**: Rust backend powered by Tauri v2.
+  - `http_server.rs`: Axum server implementing all BUD endpoints.
+  - `storage.rs`: Content-addressed blob storage with JSON descriptors.
+  - `sync.rs`: Background synchronization configuration.
+  - `mobile/`: Platform-specific background services (Android/iOS).
 
-- [Blossom Protocol](https://github.com/hzrd149/blossom)
-- [Blossom.nostr.build](https://blossom.nostr.build/)
-- [Nostr Protocol](https://github.com/nostr-protocol/nostr)
+---
+
+Open source. Built on Nostr.
