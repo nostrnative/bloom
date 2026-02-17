@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileCode,
+  RefreshCw,
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { nostrApi, NostrEvent } from '@/lib/api';
@@ -59,10 +60,12 @@ export default function NostrRelay() {
   };
 
   useEffect(() => {
+    if (relayRunning) return;
+
     checkRelayStatus();
     const interval = setInterval(checkRelayStatus, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [relayRunning]);
 
   const filteredEvents = useMemo(() => {
     return events.filter((e) => {
@@ -95,6 +98,14 @@ export default function NostrRelay() {
           </div>
         </div>
         <div className='flex items-center space-x-2'>
+          <Button
+            variant='outline'
+            size='icon'
+            className='h-8 w-8'
+            onClick={checkRelayStatus}
+          >
+            <RefreshCw className='h-4 w-4' />
+          </Button>
           <Badge
             variant={relayRunning ? 'default' : 'destructive'}
             className={relayRunning ? 'bg-green-600 hover:bg-green-700' : ''}

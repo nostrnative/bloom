@@ -8,7 +8,15 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Server, List, Trash2, Download, Loader2 } from 'lucide-react';
+import {
+  Upload,
+  Server,
+  List,
+  Trash2,
+  Download,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -47,8 +55,12 @@ export default function BlossomServer() {
   }, [serverUrl]);
 
   useEffect(() => {
+    if (serverRunning) return;
+
     checkServer();
-  }, [checkServer]);
+    const interval = setInterval(checkServer, 5000);
+    return () => clearInterval(interval);
+  }, [checkServer, serverRunning]);
 
   const { data: blobs = [], isLoading: isLoadingBlobs } = useQuery({
     queryKey: ['blobs', serverUrl, pubkey],
@@ -157,6 +169,19 @@ export default function BlossomServer() {
           </div>
         </div>
         <div className='flex items-center space-x-2'>
+          <Button
+            variant='outline'
+            size='icon'
+            className='h-8 w-8'
+            onClick={() => {
+              checkServer();
+              queryClient.invalidateQueries({
+                queryKey: ['blobs', serverUrl, pubkey],
+              });
+            }}
+          >
+            <RefreshCw className='h-4 w-4' />
+          </Button>
           <Badge variant={serverRunning ? 'default' : 'destructive'}>
             <Server className='mr-1 h-3 w-3' />
             {serverRunning ? 'Running' : 'Stopped'}
