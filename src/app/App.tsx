@@ -223,9 +223,8 @@ function AppContent() {
   }, [theme]);
 
   return (
-    <main className='h-screen w-screen overflow-hidden bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50'>
-      <div className='fixed top-0 right-0 left-0 z-50 h-[env(safe-area-inset-top)] bg-zinc-950' />
-      <div className='flex h-full flex-col md:flex-row'>
+    <main className='h-screen w-screen overflow-hidden bg-white font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50'>
+      <div className='flex h-full w-full flex-col px-[env(safe-area-inset-left)] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] md:flex-row'>
         <nav className='flex h-16 w-full items-center justify-between bg-zinc-100 px-4 py-2 md:h-full md:w-16 md:flex-col md:items-center md:justify-start md:space-y-4 md:px-0 md:py-4 dark:bg-zinc-900'>
           <div className='flex items-center justify-center pb-0 md:pb-2'>
             <img
