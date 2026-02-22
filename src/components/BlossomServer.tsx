@@ -156,23 +156,35 @@ export default function BlossomServer() {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
         <div className='flex items-center gap-4'>
-          <div className='bg-primary/10 rounded-2xl p-3'>
+          <div className='bg-primary/10 shrink-0 rounded-2xl p-3'>
             <Server className='text-primary h-8 w-8' />
           </div>
           <div>
-            <h1 className='text-3xl font-bold'>Blossom Server</h1>
-            <p className='text-muted-foreground'>
+            <h1 className='text-3xl font-bold tracking-tight'>
+              Blossom Server
+            </h1>
+            <p className='text-muted-foreground text-sm'>
               Decentralized media storage for the Nostr ecosystem
             </p>
           </div>
         </div>
-        <div className='flex items-center space-x-2'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <Badge
+            variant={serverRunning ? 'default' : 'destructive'}
+            className='h-7'
+          >
+            <Server className='mr-1 h-3 w-3' />
+            {serverRunning ? 'Running' : 'Stopped'}
+          </Badge>
+          <Badge variant='outline' className='h-7'>
+            Port {port}
+          </Badge>
           <Button
             variant='outline'
             size='icon'
-            className='h-8 w-8'
+            className='ml-auto h-7 w-7'
             onClick={() => {
               checkServer();
               queryClient.invalidateQueries({
@@ -180,13 +192,8 @@ export default function BlossomServer() {
               });
             }}
           >
-            <RefreshCw className='h-4 w-4' />
+            <RefreshCw className='h-3.5 w-3.5' />
           </Button>
-          <Badge variant={serverRunning ? 'default' : 'destructive'}>
-            <Server className='mr-1 h-3 w-3' />
-            {serverRunning ? 'Running' : 'Stopped'}
-          </Badge>
-          <Badge variant='outline'>Port {port}</Badge>
         </div>
       </div>
 

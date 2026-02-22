@@ -85,35 +85,37 @@ export default function NostrRelay() {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
         <div className='flex items-center gap-4'>
-          <div className='rounded-2xl bg-orange-100 p-3 dark:bg-orange-900/20'>
+          <div className='shrink-0 rounded-2xl bg-orange-100 p-3 dark:bg-orange-900/20'>
             <Radio className='h-8 w-8 text-orange-600 dark:text-orange-400' />
           </div>
           <div>
-            <h1 className='text-3xl font-bold'>Nostr Relay</h1>
-            <p className='text-muted-foreground'>
-              relay for local event storage
+            <h1 className='text-3xl font-bold tracking-tight'>Nostr Relay</h1>
+            <p className='text-muted-foreground text-sm'>
+              Relay for local event storage
             </p>
           </div>
         </div>
-        <div className='flex items-center space-x-2'>
-          <Button
-            variant='outline'
-            size='icon'
-            className='h-8 w-8'
-            onClick={checkRelayStatus}
-          >
-            <RefreshCw className='h-4 w-4' />
-          </Button>
+        <div className='flex flex-wrap items-center gap-2'>
           <Badge
             variant={relayRunning ? 'default' : 'destructive'}
-            className={relayRunning ? 'bg-green-600 hover:bg-green-700' : ''}
+            className={`h-7 ${relayRunning ? 'bg-green-600 hover:bg-green-700' : ''}`}
           >
             <Activity className='mr-1 h-3 w-3' />
             {relayRunning ? 'Online' : 'Offline'}
           </Badge>
-          <Badge variant='outline'>Port {relayPort}</Badge>
+          <Badge variant='outline' className='h-7'>
+            Port {relayPort}
+          </Badge>
+          <Button
+            variant='outline'
+            size='icon'
+            className='ml-auto h-7 w-7'
+            onClick={checkRelayStatus}
+          >
+            <RefreshCw className='h-3.5 w-3.5' />
+          </Button>
         </div>
       </div>
 
