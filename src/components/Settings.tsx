@@ -169,6 +169,10 @@ export default function Settings() {
     if (confirm('Are you sure? This will delete ALL local relay events! 💀')) {
       try {
         await invoke('clear_relay_content');
+        if (relayEnabled) {
+          await invoke('toggle_relay', { enabled: false, port: relayPort });
+          await invoke('toggle_relay', { enabled: true, port: relayPort });
+        }
         alert('Relay content wiped! 🧹');
       } catch (e) {
         console.error(e);
@@ -185,6 +189,10 @@ export default function Settings() {
       try {
         await invoke('clear_blossom_content');
         await invoke('clear_relay_content');
+        if (relayEnabled) {
+          await invoke('toggle_relay', { enabled: false, port: relayPort });
+          await invoke('toggle_relay', { enabled: true, port: relayPort });
+        }
         alert('TOTAL ANNIHILATION COMPLETE. 🌌');
       } catch (e) {
         console.error(e);

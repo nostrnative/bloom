@@ -69,17 +69,20 @@ pub async fn start_relay_service(
             Ok(port)
         }
         Err(e) => {
-            tracing::error!("Relay start error: {}", e);
             let err_msg = e.to_lowercase();
-            // EXPLICIT check for "address already in use" and "os error 48"
             if err_msg.contains("already running")
                 || err_msg.contains("address already in use")
                 || err_msg.contains("addrinuse")
                 || err_msg.contains("os error 48")
                 || err_msg.contains("code: 48")
             {
-                Err("PORT_IN_USE".to_string())
+                tracing::info!("Relay already running on port {}, treating as success", port);
+                let mut settings_guard = sync_settings_state.settings.write().await;
+                settings_guard.relay_port = port;
+                settings_guard.relay_enabled = true;
+                Ok(port)
             } else {
+                tracing::error!("Relay start error: {}", e);
                 Err(e)
             }
         }

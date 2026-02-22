@@ -125,13 +125,13 @@ export default function NostrRelay() {
           <CardContent>
             <div className='flex items-center justify-between'>
               <code className='text-lg font-bold text-orange-600 dark:text-orange-400'>
-                ws://localhost:{relayPort}
+                ws://127.0.0.1:{relayPort}
               </code>
               <Button
                 variant='ghost'
                 size='sm'
                 onClick={() =>
-                  navigator.clipboard.writeText(`ws://localhost:${relayPort}`)
+                  navigator.clipboard.writeText(`ws://127.0.0.1:${relayPort}`)
                 }
               >
                 Copy
