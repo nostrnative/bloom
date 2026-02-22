@@ -7,6 +7,7 @@ on:
 
 jobs:
   release:
+    name: Release (${{ matrix.name }})
     permissions:
       contents: write
     strategy:
@@ -15,12 +16,23 @@ jobs:
         include:
           - platform: macos-latest
             args: '--target aarch64-apple-darwin'
+            name: MacOS-ARM
           - platform: macos-latest
             args: '--target x86_64-apple-darwin'
+            name: MacOS-Intel
           - platform: windows-latest
             args: ''
+            name: Windows
           - platform: ubuntu-latest
             args: ''
+            name: Linux
+          - platform: ubuntu-latest
+            args: '--target x86_64-unknown-linux-gnu --config "{\"productName\": \"bloom-cachyos-x86_64-v3\"}"'
+            rustflags: '-C target-cpu=x86-64-v3'
+            name: CachyOS
+          - platform: ubuntu-latest
+            args: '--target aarch64-linux-android'
+            name: Android
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -36,8 +48,24 @@ jobs:
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || (matrix.name == 'Android' && 'aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android' || '') }}
           components: clippy
+
+      - name: Setup Java
+        if: matrix.name == 'Android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        if: matrix.name == 'Android'
+        uses: android-actions/setup-android@v3
+
+      - name: Decode Keystore
+        if: matrix.name == 'Android'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/app/release.keystore
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -57,10 +85,21 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Verify build
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags || '' }}
+        run: |
+          npm run tauri build -- --no-bundle ${{ matrix.args }}
+
       - name: Build the app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUSTFLAGS: ${{ matrix.rustflags || '' }}
+          NDK_HOME: ${{ steps.setup-android.outputs.sdk-path }}/ndk-bundle
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         with:
           projectPath: .
           tagName: v__VERSION__
