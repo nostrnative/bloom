@@ -8,6 +8,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
+use tauri::Manager;
 use tokio::sync::RwLock;
 
 #[derive(Clone)]
@@ -57,6 +58,8 @@ pub fn run_app() {
                     .on_menu_event(|app, event| match event.id().as_ref() {
                         "show" => {
                             if let Some(window) = app.get_webview_window("main") {
+                                #[cfg(target_os = "macos")]
+                                let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
                                 let _ = window.show();
                                 let _ = window.set_focus();
                             }
@@ -75,6 +78,8 @@ pub fn run_app() {
             #[cfg(desktop)]
             if let tauri::WindowEvent::CloseRequested { api, .. } = _event {
                 let _ = _window.hide();
+                #[cfg(target_os = "macos")]
+                let _ = _window.app_handle().set_activation_policy(tauri::ActivationPolicy::Accessory);
                 api.prevent_close();
             }
         })
