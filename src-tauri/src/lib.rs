@@ -79,7 +79,9 @@ pub fn run_app() {
             if let tauri::WindowEvent::CloseRequested { api, .. } = _event {
                 let _ = _window.hide();
                 #[cfg(target_os = "macos")]
-                let _ = _window.app_handle().set_activation_policy(tauri::ActivationPolicy::Accessory);
+                let _ = _window
+                    .app_handle()
+                    .set_activation_policy(tauri::ActivationPolicy::Accessory);
                 api.prevent_close();
             }
         })

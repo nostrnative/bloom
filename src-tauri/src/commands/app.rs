@@ -76,7 +76,10 @@ pub async fn start_relay_service(
                 || err_msg.contains("os error 48")
                 || err_msg.contains("code: 48")
             {
-                tracing::info!("Relay already running on port {}, treating as success", port);
+                tracing::info!(
+                    "Relay already running on port {}, treating as success",
+                    port
+                );
                 let mut settings_guard = sync_settings_state.settings.write().await;
                 settings_guard.relay_port = port;
                 settings_guard.relay_enabled = true;
