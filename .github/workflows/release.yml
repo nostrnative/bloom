@@ -92,7 +92,7 @@ jobs:
           npm run tauri build -- --no-bundle ${{ matrix.args }}
 
       - name: Build the app
-        uses: tauri-apps/tauri-action@v2
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUSTFLAGS: ${{ matrix.rustflags || '' }}
