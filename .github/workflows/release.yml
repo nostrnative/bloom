@@ -60,12 +60,24 @@ jobs:
 
       - name: Setup Android SDK
         if: matrix.name == 'Android'
+        id: setup-android
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'ndk;27.0.12077973'
+
+      - name: Set NDK Env
+        if: matrix.name == 'Android'
+        run: |
+          echo "NDK_HOME=${{ steps.setup-android.outputs.sdk-path }}/ndk/27.0.12077973" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-path }}/ndk/27.0.12077973" >> $GITHUB_ENV
+          echo "${{ steps.setup-android.outputs.sdk-path }}/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
 
       - name: Decode Keystore
         if: matrix.name == 'Android'
         run: |
+          mkdir -p src-tauri/gen/android/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/app/release.keystore
+          echo "// Cleared by CI to be re-generated" > src-tauri/gen/android/tauri.settings.gradle
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -86,6 +98,7 @@ jobs:
         run: npm run build
 
       - name: Verify build
+        if: matrix.name != 'Android'
         env:
           RUSTFLAGS: ${{ matrix.rustflags || '' }}
         run: |
@@ -96,10 +109,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUSTFLAGS: ${{ matrix.rustflags || '' }}
-          NDK_HOME: ${{ steps.setup-android.outputs.sdk-path }}/ndk-bundle
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          NDK_HOME: ${{ steps.setup-android.outputs.sdk-path }}/ndk/27.0.12077973
+          ANDROID_NDK_HOME: ${{ steps.setup-android.outputs.sdk-path }}/ndk/27.0.12077973
+          CC_aarch64_linux_android: ${{ steps.setup-android.outputs.sdk-path }}/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang
+          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         with:
           projectPath: .
           tagName: v__VERSION__
