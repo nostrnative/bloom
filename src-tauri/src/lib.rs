@@ -8,6 +8,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::sync::Arc;
 use sync::SyncSettings;
+#[cfg(desktop)]
 use tauri::Manager;
 use tokio::sync::RwLock;
 
@@ -40,7 +41,6 @@ pub fn run_app() {
                 use tauri::image::Image;
                 use tauri::menu::{MenuBuilder, MenuItemBuilder};
                 use tauri::tray::TrayIconBuilder;
-                use tauri::Manager;
 
                 let show = MenuItemBuilder::with_id("show", "Show Bloom").build(_app)?;
                 let quit = MenuItemBuilder::with_id("quit", "Quit Bloom").build(_app)?;
