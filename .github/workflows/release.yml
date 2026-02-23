@@ -27,7 +27,7 @@ jobs:
             args: ''
             name: Linux
           - platform: ubuntu-latest
-            args: '--target x86_64-unknown-linux-gnu --config "{\"productName\": \"bloom-cachyos-x86_64-v3\"}"'
+            args: --target x86_64-unknown-linux-gnu --config '{"productName":"bloom-cachyos-x86_64-v3"}'
             rustflags: '-C target-cpu=x86-64-v3'
             name: CachyOS
           - platform: ubuntu-latest
