@@ -49,23 +49,23 @@ jobs:
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || (matrix.name == 'Android' && 'aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android' || '') }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || (matrix.mobile == 'android' && 'aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android' || '') }}
           components: clippy
 
       - name: Setup Java
-        if: matrix.name == 'Android'
+        if: matrix.mobile == 'android'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Android SDK
-        if: matrix.name == 'Android'
+        if: matrix.mobile == 'android'
         id: setup-android
         uses: android-actions/setup-android@v3
 
       - name: Setup Android NDK
-        if: matrix.name == 'Android'
+        if: matrix.mobile == 'android'
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
@@ -73,17 +73,17 @@ jobs:
           link-to-sdk: true
 
       - name: Set NDK Env
-        if: matrix.name == 'Android'
+        if: matrix.mobile == 'android'
         run: |
           echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
 
       - name: Decode Keystore
-        if: matrix.name == 'Android'
+        if: matrix.mobile == 'android'
         run: |
           mkdir -p src-tauri/gen/android/app
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/app/release.keystore
+          echo -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/app/release.keystore
           echo "// Cleared by CI to be re-generated" > src-tauri/gen/android/tauri.settings.gradle
 
       - name: Rust cache
@@ -105,7 +105,7 @@ jobs:
         run: npm run build
 
       - name: Verify build
-        if: matrix.name != 'Android'
+        if: matrix.mobile != 'android'
         env:
           RUSTFLAGS: ${{ matrix.rustflags || '' }}
         run: |
