@@ -28,7 +28,7 @@ class BlossomService : Service() {
     companion object {
         init {
             // Load the Rust library
-            System.loadLibrary("blossom")
+            System.loadLibrary("bloom")
         }
 
         fun startService(context: Context, port: Int = 24242) {
