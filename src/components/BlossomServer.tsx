@@ -259,7 +259,7 @@ export default function BlossomServer() {
               id='file-upload'
               multiple
               accept='image/*,video/*,audio/*,.pdf,.txt,.psbt'
-              disabled={uploadStats.isUploading || !pubkey}
+              disabled={uploadStats.isUploading}
             />
             <label htmlFor='file-upload' className='cursor-pointer'>
               {uploadStats.isUploading ? (
@@ -273,9 +273,7 @@ export default function BlossomServer() {
                   : 'Click to upload files'}
               </p>
               <p className='text-sm text-gray-500'>
-                {!pubkey
-                  ? 'Set up your Nostr key in settings first'
-                  : 'Drag and drop or click to select multiple files'}
+                Drag and drop or click to select multiple files
               </p>
             </label>
           </div>
