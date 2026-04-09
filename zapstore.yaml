@@ -20,15 +20,15 @@ repository: https://github.com/nostrnative/bloom
 pubkey: npub1ygjd597hdwu8larprmhj893d5p832j5mhejpx40ukezgudvayg9qeklajc
 
 # Media
-icon: src-tauri/icons/icon.png
+icon: https://raw.githubusercontent.com/nostrnative/bloom/main/src-tauri/icons/icon.png
 images:
-  - images/Screenshot 2026-02-23 at 12.54.27 AM.png
-  - images/Screenshot 2026-02-23 at 12.54.38 AM.png
-  - images/Screenshot 2026-02-23 at 12.54.45 AM.png
-  - images/Screenshot 2026-02-23 at 12.54.51 AM.png
-  - images/Screenshot 2026-02-23 at 12.54.56 AM.png
-  - images/Screenshot 2026-02-23 at 12.55.04 AM.png
-  - images/Screenshot 2026-02-23 at 12.55.09 AM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.54.27%E2%80%AFAM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.54.38%E2%80%AFAM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.54.45%E2%80%AFAM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.54.51%E2%80%AFAM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.54.56%E2%80%AFAM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.55.04%E2%80%AFAM.png
+  - https://raw.githubusercontent.com/nostrnative/bloom/main/images/Screenshot%202026-02-23%20at%2012.55.09%E2%80%AFAM.png
 
 tags:
   - localfirst
