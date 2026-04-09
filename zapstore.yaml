@@ -1,0 +1,38 @@
+# Zap Store Protocol Configuration
+# Documentation: https://github.com/zapstore/zsp
+
+name: Bloom
+summary: Hybrid Nostr Relay and Blossom Server.
+description: |
+  Bloom is a high-performance hybrid server for the Nostr ecosystem.
+  It functions as both a Blossom Protocol implementation for media storage
+  and a Nostr Relay for event distribution.
+
+  Key features:
+  - Decentralized blob storage
+  - Integrated Nostr Relay
+
+license: GPL-3.0
+website: https://github.com/nostrnative/bloom.git
+
+# Source & Release
+repository: https://github.com/nostrnative/bloom.git
+pubkey: npub1ygjd597hdwu8larprmhj893d5p832j5mhejpx40ukezgudvayg9qeklajc
+
+# Media
+icon: src-tauri/icons/icon.png
+images:
+  - images/Screenshot 2026-02-23 at 12.54.27 AM.png
+  - images/Screenshot 2026-02-23 at 12.54.38 AM.png
+  - images/Screenshot 2026-02-23 at 12.54.45 AM.png
+  - images/Screenshot 2026-02-23 at 12.54.51 AM.png
+  - images/Screenshot 2026-02-23 at 12.54.56 AM.png
+  - images/Screenshot 2026-02-23 at 12.55.04 AM.png
+  - images/Screenshot 2026-02-23 at 12.55.09 AM.png
+
+tags:
+  - localfirst
+  - nostr
+  - storage
+  - decentralization
+  - tauri
