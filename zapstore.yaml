@@ -16,7 +16,7 @@ license: GPL-3.0
 website: https://github.com/nostrnative/bloom.git
 
 # Source & Release
-repository: https://github.com/nostrnative/bloom.git
+repository: https://github.com/nostrnative/bloom
 pubkey: npub1ygjd597hdwu8larprmhj893d5p832j5mhejpx40ukezgudvayg9qeklajc
 
 # Media
